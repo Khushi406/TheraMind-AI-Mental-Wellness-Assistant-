@@ -8,6 +8,7 @@ import DashboardPage from './pages/DashboardPage';
 import InsightsPage from './pages/InsightsPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import TherapistChat from './components/TherapistChat';
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
         </Switch>
       </div>
       <Footer />
+      <TherapistChat />
     </div>
   );
 }
