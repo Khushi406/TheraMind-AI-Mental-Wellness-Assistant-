@@ -1,6 +1,31 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
+
+// Users table
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull(),
+  password: text("password").notNull(),
+  email: text("email"),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+}, (table) => {
+  return {
+    usernameIdx: uniqueIndex("username_idx").on(table.username),
+  };
+});
+
+// Insert schema for users
+export const insertUserSchema = createInsertSchema(users).pick({
+  username: true,
+  password: true,
+  email: true,
+});
+
+// Export types for users
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
 
 // Journal entry table
 export const journalEntries = pgTable("journal_entries", {
@@ -9,7 +34,20 @@ export const journalEntries = pgTable("journal_entries", {
   emotions: jsonb("emotions").notNull(),
   reflection: text("reflection"),
   timestamp: timestamp("timestamp").notNull().defaultNow(),
+  user_id: integer("user_id").references(() => users.id),
 });
+
+// Set up relations
+export const usersRelations = relations(users, ({ many }) => ({
+  journalEntries: many(journalEntries),
+}));
+
+export const journalEntriesRelations = relations(journalEntries, ({ one }) => ({
+  user: one(users, {
+    fields: [journalEntries.user_id],
+    references: [users.id],
+  }),
+}));
 
 // Insert schema for journal entries
 export const insertJournalEntrySchema = createInsertSchema(journalEntries).pick({
@@ -17,6 +55,7 @@ export const insertJournalEntrySchema = createInsertSchema(journalEntries).pick(
   emotions: true,
   reflection: true,
   timestamp: true,
+  user_id: true,
 });
 
 // Define emotion type for better TypeScript support
@@ -41,12 +80,22 @@ export const journalPrompts = pgTable("journal_prompts", {
   prompt: text("prompt").notNull(),
   affirmation: text("affirmation").notNull(),
   created_at: timestamp("created_at").notNull().defaultNow(),
+  user_id: integer("user_id").references(() => users.id),
 });
+
+// Journal prompts relations
+export const journalPromptsRelations = relations(journalPrompts, ({ one }) => ({
+  user: one(users, {
+    fields: [journalPrompts.user_id],
+    references: [users.id],
+  }),
+}));
 
 // Insert schema for journal prompts
 export const insertJournalPromptSchema = createInsertSchema(journalPrompts).pick({
   prompt: true,
   affirmation: true,
+  user_id: true,
 });
 
 // Export types

@@ -3,8 +3,15 @@ import {
   InsertJournalEntry, 
   JournalPrompt, 
   InsertJournalPrompt, 
-  Emotion 
+  Emotion,
+  users,
+  journalEntries,
+  journalPrompts,
+  type User,
+  type InsertUser
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 // Interface for storage operations
 export interface IStorage {
@@ -23,78 +30,55 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
 }
 
-// Import the existing User types
-import { users, type User, type InsertUser } from "@shared/schema";
-
-// In-memory storage implementation
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private journalEntries: Map<number, JournalEntry>;
-  private journalPrompts: Map<number, JournalPrompt>;
-  private currentUserId: number;
-  private currentEntryId: number;
-  private currentPromptId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.journalEntries = new Map();
-    this.journalPrompts = new Map();
-    this.currentUserId = 1;
-    this.currentEntryId = 1;
-    this.currentPromptId = 1;
-    
-    // Add some initial prompts
-    this.savePrompt({
-      prompt: "What made you feel grateful today, and how did those moments affect your overall mood?",
-      affirmation: "I acknowledge my emotions and treat myself with compassion. Each day is an opportunity for growth."
-    });
-  }
-
+// Database storage implementation
+export class DatabaseStorage implements IStorage {
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
   }
   
   // Journal Entry methods
   async getJournalEntryById(id: number): Promise<JournalEntry | undefined> {
-    return this.journalEntries.get(id);
+    const result = await db.select().from(journalEntries).where(eq(journalEntries.id, id));
+    return result[0];
   }
   
   async getAllJournalEntries(): Promise<JournalEntry[]> {
     // Return all entries sorted by timestamp (newest first)
-    return Array.from(this.journalEntries.values())
-      .sort((a, b) => {
-        const dateA = new Date(a.timestamp).getTime();
-        const dateB = new Date(b.timestamp).getTime();
-        return dateB - dateA;
-      });
+    return await db.select().from(journalEntries).orderBy(desc(journalEntries.timestamp));
   }
   
   async saveJournalEntry(entry: InsertJournalEntry): Promise<JournalEntry> {
-    const id = this.currentEntryId++;
-    const journalEntry: JournalEntry = { ...entry, id };
-    this.journalEntries.set(id, journalEntry);
-    return journalEntry;
+    const result = await db.insert(journalEntries).values(entry).returning();
+    return result[0];
   }
   
   // Journal Prompt methods
   async getPrompt(): Promise<JournalPrompt | undefined> {
-    // For now, just return the most recent prompt
-    const prompts = Array.from(this.journalPrompts.values());
-    if (prompts.length === 0) return undefined;
+    // Get all prompts
+    const prompts = await db.select().from(journalPrompts);
+    
+    if (prompts.length === 0) {
+      // If no prompts in DB, create a default one
+      const defaultPrompt = {
+        prompt: "What made you feel grateful today, and how did those moments affect your overall mood?",
+        affirmation: "I acknowledge my emotions and treat myself with compassion. Each day is an opportunity for growth."
+      };
+      
+      const newPrompt = await this.savePrompt(defaultPrompt);
+      return newPrompt;
+    }
     
     // Get a random prompt from the available ones
     const randomIndex = Math.floor(Math.random() * prompts.length);
@@ -102,12 +86,9 @@ export class MemStorage implements IStorage {
   }
   
   async savePrompt(prompt: InsertJournalPrompt): Promise<JournalPrompt> {
-    const id = this.currentPromptId++;
-    const created_at = new Date();
-    const journalPrompt: JournalPrompt = { ...prompt, id, created_at };
-    this.journalPrompts.set(id, journalPrompt);
-    return journalPrompt;
+    const result = await db.insert(journalPrompts).values(prompt).returning();
+    return result[0];
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
