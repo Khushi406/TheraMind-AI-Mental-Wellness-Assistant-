@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { getHistory } from '../lib/api';
 import Chart from 'chart.js/auto';
 import { format, subDays, subMonths, addDays, startOfWeek, startOfMonth, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval } from 'date-fns';
+import MoodAnalytics from '../components/MoodAnalytics';
 
 export default function DashboardPage() {
   const moodChartRef = useRef(null);
@@ -155,9 +156,6 @@ export default function DashboardPage() {
     
     // Create monthly mood chart
     createMonthlyMoodChart(entries);
-    
-    // Create mood calendar chart (heatmap)
-    // createMoodCalendarChart(entries);
   };
 
   const createEmotionalJourneyChart = (entries) => {
@@ -518,44 +516,81 @@ export default function DashboardPage() {
       return entryCount > 0 ? (totalSadness / entryCount) : 0;
     });
     
-    // Create monthly chart
+    // Create mood score chart
     monthlyMoodChartRef.current.chart = new Chart(ctx, {
-      type: 'bar',
+      type: 'line',
       data: {
         labels: labels,
         datasets: [
           {
-            type: 'line',
             label: 'Mood Score',
             data: moodScores,
-            borderColor: '#3F51B5',
-            backgroundColor: 'rgba(63, 81, 181, 0.1)',
-            borderWidth: 2,
+            borderColor: '#9C27B0',
+            backgroundColor: '#9C27B020',
             tension: 0.4,
             fill: true,
-            yAxisID: 'y'
+            yAxisID: 'y',
+            pointBackgroundColor: '#9C27B0'
           },
           {
-            type: 'bar',
             label: 'Joy',
             data: joyIntensity,
-            backgroundColor: 'rgba(76, 175, 80, 0.7)',
-            borderWidth: 0,
-            yAxisID: 'y1'
+            borderColor: '#4CAF50',
+            backgroundColor: 'transparent',
+            borderDash: [5, 5],
+            tension: 0.4,
+            yAxisID: 'y1',
+            pointBackgroundColor: '#4CAF50'
           },
           {
-            type: 'bar',
             label: 'Sadness',
             data: sadnessIntensity,
-            backgroundColor: 'rgba(33, 150, 243, 0.7)',
-            borderWidth: 0,
-            yAxisID: 'y1'
+            borderColor: '#2196F3',
+            backgroundColor: 'transparent',
+            borderDash: [5, 5],
+            tension: 0.4,
+            yAxisID: 'y1',
+            pointBackgroundColor: '#2196F3'
           }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                let label = context.dataset.label || '';
+                if (label) {
+                  label += ': ';
+                }
+                if (context.parsed.y !== null) {
+                  if (label.includes('Mood')) {
+                    let moodText = '';
+                    const score = context.parsed.y;
+                    if (score >= 80) moodText = 'Very Positive';
+                    else if (score >= 65) moodText = 'Positive';
+                    else if (score >= 50) moodText = 'Slightly Positive';
+                    else if (score >= 40) moodText = 'Neutral';
+                    else if (score >= 25) moodText = 'Slightly Negative';
+                    else if (score >= 10) moodText = 'Negative';
+                    else moodText = 'Very Negative';
+                    
+                    label += `${Math.round(context.parsed.y)}/100 (${moodText})`;
+                  } else {
+                    label += `${Math.round(context.parsed.y)}%`;
+                  }
+                }
+                return label;
+              }
+            }
+          }
+        },
         scales: {
           y: {
             type: 'linear',
@@ -574,12 +609,12 @@ export default function DashboardPage() {
             position: 'right',
             beginAtZero: true,
             max: 100,
+            grid: {
+              drawOnChartArea: false,
+            },
             title: {
               display: true,
               text: 'Emotion Intensity (%)'
-            },
-            grid: {
-              drawOnChartArea: false
             }
           }
         }
@@ -587,57 +622,60 @@ export default function DashboardPage() {
     });
   };
 
-  // Calculate streak (consecutive days with journal entries)
+  // Calculate streaks
   const calculateStreak = (entries) => {
     if (!entries || entries.length === 0) return 0;
     
-    // Sort entries by date, newest first
-    const sortedEntries = [...entries].sort((a, b) => 
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
+    const sortedEntries = [...entries].sort((a, b) => {
+      return new Date(b.timestamp) - new Date(a.timestamp);
+    });
     
-    // Get today's date at midnight for comparison
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     
     let currentStreak = 0;
-    let previousDate = today;
+    let previousDate = null;
     
     // Check if there's an entry for today
     const latestEntry = sortedEntries[0];
-    const latestEntryDate = new Date(latestEntry.timestamp);
-    latestEntryDate.setHours(0, 0, 0, 0);
+    const latestDate = new Date(latestEntry.timestamp);
+    const latestDateWithoutTime = new Date(latestDate.getFullYear(), latestDate.getMonth(), latestDate.getDate());
     
-    if (latestEntryDate.getTime() !== today.getTime()) {
-      // No entry today, streak is broken unless there was one yesterday
+    if (latestDateWithoutTime.getTime() === today.getTime()) {
+      // If there's an entry for today, start the streak at 1
+      currentStreak = 1;
+      previousDate = today;
+    } else {
+      // No entry for today, check if there's one for yesterday
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
       
-      if (latestEntryDate.getTime() !== yesterday.getTime()) {
-        return 0; // No entry yesterday either, streak is 0
+      if (latestDateWithoutTime.getTime() === yesterday.getTime()) {
+        // If there's an entry for yesterday, start the streak at 1
+        currentStreak = 1;
+        previousDate = yesterday;
+      } else {
+        // No entry for yesterday either, streak is 0
+        return 0;
       }
-      
-      previousDate = yesterday; // Start counting from yesterday
     }
     
-    // Initialize the set of dates with entries
-    const entryDates = new Set(
-      sortedEntries.map(entry => {
-        const date = new Date(entry.timestamp);
-        date.setHours(0, 0, 0, 0);
-        return date.getTime();
-      })
-    );
-    
-    // Count consecutive days with entries
-    for (let date = previousDate; entryDates.has(date.getTime()); date.setDate(date.getDate() - 1)) {
-      currentStreak++;
+    // Iterate through sorted entries, starting from the second one (if any)
+    for (let i = 1; i < sortedEntries.length; i++) {
+      const entry = sortedEntries[i];
+      const entryDate = new Date(entry.timestamp);
+      const entryDateWithoutTime = new Date(entryDate.getFullYear(), entryDate.getMonth(), entryDate.getDate());
       
-      // Check for the next consecutive day
-      const nextDay = new Date(date);
-      nextDay.setDate(nextDay.getDate() - 1);
+      // Calculate the expected previous date for a continuous streak
+      const expectedPreviousDate = new Date(previousDate);
+      expectedPreviousDate.setDate(expectedPreviousDate.getDate() - 1);
       
-      if (!entryDates.has(nextDay.getTime())) {
+      if (entryDateWithoutTime.getTime() === expectedPreviousDate.getTime()) {
+        // Found an entry for the expected previous day, increment streak
+        currentStreak++;
+        previousDate = entryDateWithoutTime;
+      } else {
+        // Streak is broken
         break;
       }
     }
@@ -645,7 +683,41 @@ export default function DashboardPage() {
     return currentStreak;
   };
 
-  const streak = historyData ? calculateStreak(historyData.entries) : 0;
+  // Data for display
+  const entries = historyData?.entries || [];
+  const streak = calculateStreak(entries);
+  const entriesCount = entries.length;
+
+  // Calculate emotion distribution
+  const emotionCounts = {};
+  entries.forEach(entry => {
+    entry.emotions.forEach(emotion => {
+      const emotionName = emotion.label.toLowerCase();
+      emotionCounts[emotionName] = (emotionCounts[emotionName] || 0) + emotion.score;
+    });
+  });
+  
+  const colorMap = {
+    joy: '#4CAF50',
+    sadness: '#2196F3',
+    anger: '#F44336',
+    fear: '#FF9800',
+    surprise: '#9C27B0',
+    neutral: '#9E9E9E',
+    disgust: '#FF5722'
+  };
+
+  const emotionTotal = Object.values(emotionCounts).reduce((acc, val) => acc + val, 0);
+  const emotionDistribution = Object.entries(emotionCounts)
+    .map(([name, count]) => ({
+      name,
+      percentage: Math.round((count / emotionTotal) * 100),
+      color: colorMap[name] || '#9E9E9E'
+    }))
+    .sort((a, b) => b.percentage - a.percentage);
+
+  // Get dominant emotion
+  const dominantEmotion = emotionDistribution.length > 0 ? emotionDistribution[0].name : null;
 
   return (
     <main className="container mx-auto px-4 py-6">
@@ -668,371 +740,153 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         
-        {/* Mood Score Card */}
-        <Card className="bg-white">
-          <CardContent className="p-6">
-            <h3 className="text-xl font-semibold text-neutral-800 mb-2">Today's Mood</h3>
-            {isLoading || !historyData ? (
-              <div className="animate-pulse flex flex-col items-center">
-                <div className="h-16 w-16 bg-neutral-200 rounded-full mb-2"></div>
-                <div className="h-4 w-24 bg-neutral-200 rounded"></div>
-              </div>
-            ) : historyData.entries.length > 0 ? (
-              <div className="flex flex-col items-center">
-                <div className="relative h-20 w-20 mb-2">
-                  <svg viewBox="0 0 100 100" className="transform -rotate-90">
-                    <circle 
-                      cx="50" cy="50" r="45" 
-                      fill="none" 
-                      stroke="#e0e0e0" 
-                      strokeWidth="10"
-                    />
-                    <circle 
-                      cx="50" cy="50" r="45" 
-                      fill="none" 
-                      stroke={
-                        calculateMoodScore(historyData.entries[0].emotions) >= 70 ? "#4CAF50" :
-                        calculateMoodScore(historyData.entries[0].emotions) >= 50 ? "#8BC34A" :
-                        calculateMoodScore(historyData.entries[0].emotions) >= 30 ? "#FFC107" :
-                        "#F44336"
-                      } 
-                      strokeWidth="10"
-                      strokeDasharray="282.7"
-                      strokeDashoffset={282.7 - (282.7 * calculateMoodScore(historyData.entries[0].emotions) / 100)}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-2xl font-bold">
-                      {calculateMoodScore(historyData.entries[0].emotions)}
-                    </span>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <p className="font-medium text-neutral-700">
-                    {calculateMoodScore(historyData.entries[0].emotions) >= 80 ? 'Very Positive' :
-                     calculateMoodScore(historyData.entries[0].emotions) >= 65 ? 'Positive' :
-                     calculateMoodScore(historyData.entries[0].emotions) >= 50 ? 'Slightly Positive' :
-                     calculateMoodScore(historyData.entries[0].emotions) >= 40 ? 'Neutral' :
-                     calculateMoodScore(historyData.entries[0].emotions) >= 25 ? 'Slightly Negative' :
-                     calculateMoodScore(historyData.entries[0].emotions) >= 10 ? 'Negative' :
-                     'Very Negative'}
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-4">
-                <p className="text-neutral-500">No entries yet</p>
-                <p className="text-sm text-neutral-400">Write your first journal entry to see your mood score</p>
-              </div>
-            )}
+        {/* Total Entries Card */}
+        <Card>
+          <CardContent className="p-6 flex flex-col items-center justify-center">
+            <h3 className="text-xl font-semibold mb-2">Total Entries</h3>
+            <div className="text-5xl font-bold mb-2">{historyData?.entries?.length || 0}</div>
+            <p className="text-muted-foreground">journal reflections</p>
           </CardContent>
         </Card>
         
-        {/* Progress Card */}
-        <Card className="bg-white">
-          <CardContent className="p-6">
-            <h3 className="text-xl font-semibold text-neutral-800 mb-2">Your Progress</h3>
-            <div className="grid grid-cols-3 gap-2 mb-4">
-              <div className="flex flex-col items-center p-2 rounded-lg bg-neutral-50">
-                <span className="text-xl font-bold text-primary">
-                  {isLoading || !historyData ? '-' : historyData.entries.length}
-                </span>
-                <span className="text-xs text-neutral-600">Entries</span>
-              </div>
-              <div className="flex flex-col items-center p-2 rounded-lg bg-neutral-50">
-                <span className="text-xl font-bold text-secondary">
-                  {isLoading || !historyData ? '-' : 
-                   historyData.entries.length > 0 ? 
-                   Object.keys(historyData.entries.reduce((acc, entry) => {
-                     entry.emotions.forEach(emotion => acc[emotion.label.toLowerCase()] = true);
-                     return acc;
-                   }, {})).length : 0}
-                </span>
-                <span className="text-xs text-neutral-600">Emotions</span>
-              </div>
-              <div className="flex flex-col items-center p-2 rounded-lg bg-neutral-50">
-                <span className="text-xl font-bold text-accent">
-                  {isLoading || !historyData ? '-' : 
-                   historyData.entries.length > 1 ? 
-                   Math.round((Date.now() - new Date(historyData.entries[historyData.entries.length - 1].timestamp).getTime()) / (1000 * 60 * 60 * 24)) : 0}
-                </span>
-                <span className="text-xs text-neutral-600">Days</span>
-              </div>
-            </div>
-            
-            <div className="w-full bg-neutral-100 rounded-full h-2.5 mb-1">
-              <div 
-                className="bg-primary h-2.5 rounded-full" 
-                style={{ width: `${Math.min(100, (historyData?.entries.length || 0) * 10)}%` }}
-              ></div>
-            </div>
-            <p className="text-xs text-neutral-500 text-right">
-              {historyData?.entries.length || 0}/10 entries to reach level 1
-            </p>
+        {/* Dominant Emotion Card */}
+        <Card>
+          <CardContent className="p-6 flex flex-col items-center justify-center">
+            <h3 className="text-xl font-semibold mb-2">Dominant Emotion</h3>
+            <div className="text-3xl font-bold mb-2 capitalize">{dominantEmotion || "N/A"}</div>
+            <p className="text-muted-foreground">past 7 days</p>
           </CardContent>
         </Card>
       </div>
       
-      <Tabs defaultValue="emotions" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="emotions">Emotion Tracking</TabsTrigger>
-          <TabsTrigger value="mood">Mood Analysis</TabsTrigger>
-          <TabsTrigger value="insights">Insights</TabsTrigger>
+      <Tabs defaultValue="classic" className="w-full mb-8">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="classic">Classic View</TabsTrigger>
+          <TabsTrigger value="advanced">Advanced Analytics</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="emotions">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {/* Emotions Chart */}
-            <Card className="lg:col-span-2">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-xl font-semibold text-neutral-800">Emotional Journey</h3>
-                  <div className="flex space-x-2">
-                    <div className="flex space-x-1 bg-neutral-100 p-1 rounded-md">
-                      <Button
-                        variant={timeRange === 'week' ? 'default' : 'ghost'}
-                        size="sm"
-                        className="h-8 px-2 text-xs"
-                        onClick={() => setTimeRange('week')}
-                      >
-                        Week
-                      </Button>
-                      <Button
-                        variant={timeRange === 'month' ? 'default' : 'ghost'}
-                        size="sm"
-                        className="h-8 px-2 text-xs"
-                        onClick={() => setTimeRange('month')}
-                      >
-                        Month
-                      </Button>
-                      <Button
-                        variant={timeRange === 'year' ? 'default' : 'ghost'}
-                        size="sm"
-                        className="h-8 px-2 text-xs"
-                        onClick={() => setTimeRange('year')}
-                      >
-                        Year
-                      </Button>
-                    </div>
-                    <div className="flex space-x-1 bg-neutral-100 p-1 rounded-md">
-                      <Button
-                        variant={chartType === 'line' ? 'default' : 'ghost'}
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => setChartType('line')}
-                      >
-                        <i className="fas fa-chart-line"></i>
-                      </Button>
-                      <Button
-                        variant={chartType === 'bar' ? 'default' : 'ghost'}
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => setChartType('bar')}
-                      >
-                        <i className="fas fa-chart-bar"></i>
-                      </Button>
-                      <Button
-                        variant={chartType === 'radar' ? 'default' : 'ghost'}
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => setChartType('radar')}
-                      >
-                        <i className="fas fa-spider"></i>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                <div className="h-80">
-                  <canvas ref={moodChartRef}></canvas>
-                  {isLoading && (
-                    <div className="flex justify-center items-center h-full">
-                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+        <TabsContent value="classic" className="mt-4">
+          <Tabs defaultValue="journey" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:grid-cols-4">
+              <TabsTrigger value="journey">Emotional Journey</TabsTrigger>
+              <TabsTrigger value="distribution">Emotion Distribution</TabsTrigger>
+              <TabsTrigger value="weekly">Weekly Mood</TabsTrigger>
+              <TabsTrigger value="monthly">Monthly Mood</TabsTrigger>
+            </TabsList>
             
-            {/* Emotion Distribution */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold text-neutral-800 mb-4">Emotion Distribution</h3>
-                <div className="h-60">
-                  <canvas ref={emotionPieChartRef}></canvas>
-                  {isLoading && (
-                    <div className="flex justify-center items-center h-full">
-                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+            <div className="mt-4">
+              {/* Filters for Emotional Journey Tab */}
+              <TabsContent value="journey" className="mt-0">
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <Button
+                    variant={timeRange === 'week' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTimeRange('week')}
+                  >
+                    Past Week
+                  </Button>
+                  <Button
+                    variant={timeRange === 'month' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTimeRange('month')}
+                  >
+                    Past Month
+                  </Button>
+                  <Button
+                    variant={timeRange === 'year' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setTimeRange('year')}
+                  >
+                    Past Year
+                  </Button>
+                  <div className="border-l mx-2 h-8"></div>
+                  <Button
+                    variant={chartType === 'line' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setChartType('line')}
+                  >
+                    Line
+                  </Button>
+                  <Button
+                    variant={chartType === 'bar' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setChartType('bar')}
+                  >
+                    Bar
+                  </Button>
+                  <Button
+                    variant={chartType === 'radar' ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setChartType('radar')}
+                  >
+                    Radar
+                  </Button>
+                </div>
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="h-80">
+                      <canvas ref={moodChartRef}></canvas>
                     </div>
-                  )}
-                </div>
-                {!isLoading && historyData && historyData.entries.length > 0 && (
-                  <div className="mt-4 grid grid-cols-2 gap-2">
-                    {Object.entries({
-                      joy: ['#4CAF50', '32%'],
-                      sadness: ['#2196F3', '18%'],
-                      anger: ['#F44336', '10%'],
-                      fear: ['#FF9800', '15%'],
-                      surprise: ['#9C27B0', '5%'],
-                      neutral: ['#9E9E9E', '20%']
-                    }).map(([emotion, [color, percent]]) => (
-                      <div key={emotion} className="flex items-center">
-                        <span className="w-3 h-3 rounded-full mr-2" style={{backgroundColor: color}}></span>
-                        <span className="text-sm text-neutral-700">
-                          {emotion.charAt(0).toUpperCase() + emotion.slice(1)} ({percent})
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="mood">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Weekly Mood */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold text-neutral-800 mb-4">Weekly Mood</h3>
-                <div className="h-80">
-                  <canvas ref={weeklyMoodChartRef}></canvas>
-                  {isLoading && (
-                    <div className="flex justify-center items-center h-full">
-                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Monthly Mood */}
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-xl font-semibold text-neutral-800 mb-4">Monthly Patterns</h3>
-                <div className="h-80">
-                  <canvas ref={monthlyMoodChartRef}></canvas>
-                  {isLoading && (
-                    <div className="flex justify-center items-center h-full">
-                      <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="insights">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {/* Patterns */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
-                  <div className="h-10 w-10 rounded-full bg-primary flex-shrink-0 flex items-center justify-center">
-                    <i className="fas fa-chart-line text-white"></i>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-neutral-800 mb-2">Patterns & Trends</h3>
-                    <ul className="space-y-3">
-                      <li className="flex items-start">
-                        <i className="fas fa-chevron-right text-primary mt-1 mr-2"></i>
-                        <p className="text-neutral-700">Your mood tends to improve on weekends</p>
-                      </li>
-                      <li className="flex items-start">
-                        <i className="fas fa-chevron-right text-primary mt-1 mr-2"></i>
-                        <p className="text-neutral-700">Anxiety appears more frequently on Monday mornings</p>
-                      </li>
-                      <li className="flex items-start">
-                        <i className="fas fa-chevron-right text-primary mt-1 mr-2"></i>
-                        <p className="text-neutral-700">Social activities correlate with positive emotions</p>
-                      </li>
-                      <li className="flex items-start">
-                        <i className="fas fa-chevron-right text-primary mt-1 mr-2"></i>
-                        <p className="text-neutral-700">Your emotions have been more stable in the past week</p>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            
-            {/* Common Triggers */}
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-start space-x-4">
-                  <div className="h-10 w-10 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center">
-                    <i className="fas fa-bolt text-white"></i>
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-semibold text-neutral-800 mb-2">Emotional Triggers</h3>
-                    <div className="space-y-3">
-                      <div className="bg-red-50 p-3 rounded-lg">
-                        <h4 className="font-medium text-red-800 mb-1">Stress Triggers</h4>
-                        <p className="text-neutral-700 text-sm">Work deadlines, financial concerns, family conflicts</p>
-                      </div>
-                      <div className="bg-green-50 p-3 rounded-lg">
-                        <h4 className="font-medium text-green-800 mb-1">Joy Triggers</h4>
-                        <p className="text-neutral-700 text-sm">Time with friends, outdoor activities, creative projects</p>
-                      </div>
-                      <div className="bg-blue-50 p-3 rounded-lg">
-                        <h4 className="font-medium text-blue-800 mb-1">Calm Triggers</h4>
-                        <p className="text-neutral-700 text-sm">Morning walks, meditation, reading before bed</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Wellness Resources */}
-          <Card className="mb-8">
-            <CardContent className="p-6">
-              <h3 className="text-xl font-semibold text-neutral-800 mb-4">Wellness Resources</h3>
+                  </CardContent>
+                </Card>
+              </TabsContent>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="rounded-xl overflow-hidden shadow-sm">
-                  <img 
-                    src="https://images.unsplash.com/photo-1506126613408-eca07ce68773?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500&q=80" 
-                    alt="Person meditating" 
-                    className="w-full h-40 object-cover" 
-                  />
-                  <div className="p-4">
-                    <h4 className="font-medium text-neutral-800 mb-1">Guided Meditation</h4>
-                    <p className="text-neutral-600 text-sm mb-2">5-minute practices for anxiety relief</p>
-                    <button className="text-primary text-sm font-medium hover:underline">Explore →</button>
-                  </div>
-                </div>
-                
-                <div className="rounded-xl overflow-hidden shadow-sm">
-                  <img 
-                    src="https://images.unsplash.com/photo-1517842645767-c639042777db?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500&q=80" 
-                    alt="Person journaling" 
-                    className="w-full h-40 object-cover" 
-                  />
-                  <div className="p-4">
-                    <h4 className="font-medium text-neutral-800 mb-1">Journaling Techniques</h4>
-                    <p className="text-neutral-600 text-sm mb-2">Advanced methods for emotional clarity</p>
-                    <button className="text-primary text-sm font-medium hover:underline">Explore →</button>
-                  </div>
-                </div>
-                
-                <div className="rounded-xl overflow-hidden shadow-sm">
-                  <img 
-                    src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&h=500&q=80" 
-                    alt="Peaceful nature scene" 
-                    className="w-full h-40 object-cover" 
-                  />
-                  <div className="p-4">
-                    <h4 className="font-medium text-neutral-800 mb-1">Breathing Exercises</h4>
-                    <p className="text-neutral-600 text-sm mb-2">Simple techniques for instant calm</p>
-                    <button className="text-primary text-sm font-medium hover:underline">Explore →</button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <TabsContent value="distribution" className="mt-0">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="flex flex-col md:flex-row">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold mb-4 text-center">Emotion Distribution</h3>
+                        <div className="h-64 md:h-80 relative flex items-center justify-center">
+                          <canvas ref={emotionPieChartRef}></canvas>
+                          <div className="absolute inset-0 flex items-center justify-center flex-col">
+                            <p className="text-3xl font-bold">{entriesCount}</p>
+                            <p className="text-sm text-muted-foreground">entries</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex-1 mt-6 md:mt-0">
+                        <h3 className="text-lg font-semibold mb-4 text-center">Emotion Legend</h3>
+                        <div className="grid grid-cols-1 gap-2 max-w-md mx-auto">
+                          {emotionDistribution.map(item => (
+                            <div key={item.name} className="flex items-center">
+                              <div className="w-4 h-4 rounded-full mr-2" style={{ backgroundColor: item.color }}></div>
+                              <span className="capitalize">{item.name}</span>
+                              <div className="ml-auto">{item.percentage}%</div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="weekly" className="mt-0">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="h-80">
+                      <canvas ref={weeklyMoodChartRef}></canvas>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              
+              <TabsContent value="monthly" className="mt-0">
+                <Card>
+                  <CardContent className="p-6">
+                    <div className="h-80">
+                      <canvas ref={monthlyMoodChartRef}></canvas>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </div>
+          </Tabs>
+        </TabsContent>
+        
+        <TabsContent value="advanced" className="mt-4">
+          <MoodAnalytics />
         </TabsContent>
       </Tabs>
     </main>

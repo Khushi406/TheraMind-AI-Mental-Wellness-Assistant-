@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime, timedelta
 import time
-from server.encryption import encryption_manager
+from encryption import encryption_manager
 
 class DataStorage:
     """
