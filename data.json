@@ -27,6 +27,62 @@
       ],
       "reflection": "You're experiencing joy, which suggests you're connecting with things that bring you fulfillment. Cherish these positive moments and consider how you might create more of them in your life.",
       "timestamp": "2025-05-18T08:33:44.941169"
+    },
+    {
+      "id": 2,
+      "content": "I\u2019ve been feeling really overwhelmed lately. There\u2019s so much to do with exams, work, and personal stuff all piling up. My mind keeps racing, and it\u2019s hard to focus. I wish I could slow down or find a way to feel less anxious. I hope tomorrow will be better.\n\n",
+      "emotions": [
+        {
+          "label": "fear",
+          "score": 0.8304955363273621
+        },
+        {
+          "label": "surprise",
+          "score": 0.1645498126745224
+        },
+        {
+          "label": "sadness",
+          "score": 0.002292436547577381
+        },
+        {
+          "label": "joy",
+          "score": 0.0009159689070656896
+        },
+        {
+          "label": "love",
+          "score": 0.000886030844412744
+        }
+      ],
+      "reflection": "There's fear present in your writing. This emotion helps us identify potential threats, but sometimes it can overestimate risks. Try to distinguish between helpful caution and limiting anxiety.",
+      "timestamp": "2025-05-20T17:18:31.835472"
+    },
+    {
+      "id": 3,
+      "content": "Today, I set some new goals for myself. I\u2019m excited to start fresh and try to build better habits. I know it won\u2019t be easy, but I\u2019m ready to put in the effort. I want to be kinder to myself and celebrate small wins along the way. Here\u2019s to growth and new beginnings!",
+      "emotions": [
+        {
+          "label": "joy",
+          "score": 0.9984889030456543
+        },
+        {
+          "label": "love",
+          "score": 0.0006850887439213693
+        },
+        {
+          "label": "anger",
+          "score": 0.0003179358027409762
+        },
+        {
+          "label": "sadness",
+          "score": 0.00025629144511185586
+        },
+        {
+          "label": "surprise",
+          "score": 0.00013624472194351256
+        }
+      ],
+      "reflection": "You're experiencing joy, which suggests you're connecting with things that bring you fulfillment. Cherish these positive moments and consider how you might create more of them in your life.",
+      "timestamp": "2025-05-20T17:18:49.998724"
     }
   ]
 }
