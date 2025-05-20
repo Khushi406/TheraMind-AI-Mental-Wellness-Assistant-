@@ -83,6 +83,62 @@
       ],
       "reflection": "You're experiencing joy, which suggests you're connecting with things that bring you fulfillment. Cherish these positive moments and consider how you might create more of them in your life.",
       "timestamp": "2025-05-20T17:18:49.998724"
+    },
+    {
+      "id": 4,
+      "content": "I\u2019m really thankful for the friends and family who support me. Their kindness and encouragement mean the world. Even when things get tough, knowing I\u2019m not alone gives me strength. I want to focus more on the good things and keep spreading positivity.\n\n",
+      "emotions": [
+        {
+          "label": "joy",
+          "score": 0.9917747974395752
+        },
+        {
+          "label": "sadness",
+          "score": 0.004955361131578684
+        },
+        {
+          "label": "anger",
+          "score": 0.001324784941971302
+        },
+        {
+          "label": "love",
+          "score": 0.0013198640663176775
+        },
+        {
+          "label": "fear",
+          "score": 0.0004192297928966582
+        }
+      ],
+      "reflection": "You're experiencing joy, which suggests you're connecting with things that bring you fulfillment. Cherish these positive moments and consider how you might create more of them in your life.",
+      "timestamp": "2025-05-20T17:19:11.755368"
+    },
+    {
+      "id": 5,
+      "content": "Lately, I\u2019ve been feeling a lot of frustration. It hit me hard last week when a project I\u2019d been working on for weeks suddenly faced unexpected setbacks. I felt powerless and worried that all my effort was going to be wasted. The frustration bubbled up quickly and was hard to shake off.\n\nTo cope, I decided to take a step back and give myself some space to breathe. I went for a walk outside and tried to focus on small things that brought me calm\u2014the sound of birds, the fresh air, and the sunlight. I also talked to a close friend about what I was feeling, which helped me feel less alone and more understood. Eventually, I reminded myself that setbacks are a normal part of growth and that I can use this as a learning experience rather than a failure.",
+      "emotions": [
+        {
+          "label": "sadness",
+          "score": 0.995139479637146
+        },
+        {
+          "label": "anger",
+          "score": 0.002021252876147628
+        },
+        {
+          "label": "fear",
+          "score": 0.001974512590095401
+        },
+        {
+          "label": "joy",
+          "score": 0.0005409963196143508
+        },
+        {
+          "label": "surprise",
+          "score": 0.00018148509843740612
+        }
+      ],
+      "reflection": "I notice sadness in your entry. Remember that all emotions, including difficult ones, are part of the human experience. Be gentle with yourself as you process these feelings.",
+      "timestamp": "2025-05-20T17:21:29.819929"
     }
   ]
 }

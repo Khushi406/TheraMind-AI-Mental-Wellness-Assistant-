@@ -427,15 +427,72 @@ def get_default_prompt(prompt_type="general"):
     return random.choice(prompts)
 
 
-def get_default_affirmation():
-    affirmations = [
-        "I acknowledge my emotions and treat myself with compassion. Each day is an opportunity for growth.",
-        "My feelings are valid, and I give myself permission to experience them fully.",
-        "I am growing more aware of my emotions every day and learning from them.",
-        "I trust in my ability to navigate difficult emotions with grace and patience.",
-        "I am worthy of happiness, peace, and emotional well-being.",
-        "Today I choose to focus on positive thoughts and nurture my emotional health."
-    ]
+def get_default_affirmation(affirmation_type="general"):
+    # Dictionary of affirmation categories with list of affirmations for each
+    themed_affirmations = {
+        "general": [
+            "I acknowledge my emotions and treat myself with compassion. Each day is an opportunity for growth.",
+            "My feelings are valid, and I give myself permission to experience them fully.",
+            "I am growing more aware of my emotions every day and learning from them.",
+            "I trust in my ability to navigate difficult emotions with grace and patience.",
+            "I am worthy of happiness, peace, and emotional well-being.",
+            "Today I choose to focus on positive thoughts and nurture my emotional health."
+        ],
+        "joy": [
+            "I savor this moment of joy and let it nourish my spirit.",
+            "I am grateful for the happiness in my life and allow myself to fully experience it.",
+            "Joy is my natural state of being, and I welcome it with an open heart.",
+            "I deserve to experience happiness and will carry this feeling forward.",
+            "This moment of joy is teaching me about what truly matters in my life."
+        ],
+        "sadness": [
+            "My sadness is teaching me something important, and I listen with compassion.",
+            "I honor my feelings of sadness without judgment and treat myself with extra kindness today.",
+            "This difficult emotion will pass, and I have the strength to move through it.",
+            "I embrace all my emotions, including sadness, as part of my human experience.",
+            "Even in moments of sadness, I am worthy of love and gentleness."
+        ],
+        "anxiety": [
+            "I am safe in this moment, and I can breathe through any feelings of anxiety.",
+            "My anxious thoughts are not facts, and I can choose to release them.",
+            "I have successfully navigated challenging situations before, and I can do so again.",
+            "I give myself permission to take one small step at a time.",
+            "As I breathe deeply, I return to the present moment where I am safe."
+        ],
+        "anger": [
+            "I acknowledge my anger and choose to respond rather than react.",
+            "My anger is information, and I can use it constructively.",
+            "I have the power to transform this energy into positive action.",
+            "I can feel angry and still make wise choices that align with my values.",
+            "As I release judgment, I create space for understanding and peace."
+        ],
+        "health": [
+            "I listen to my body's wisdom and honor its needs.",
+            "Each choice I make for my well-being matters and builds toward my health.",
+            "I deserve to prioritize my physical and mental health.",
+            "My body is remarkable, and I treat it with respect and gratitude.",
+            "I nourish myself with care, patience, and loving attention."
+        ],
+        "relationships": [
+            "I attract relationships that nurture my growth and bring me joy.",
+            "I communicate my needs with clarity and listen with an open heart.",
+            "I am worthy of deep connection and authentic relationships.",
+            "I bring my true self to my relationships and allow others to do the same.",
+            "As I cultivate self-love, my relationships become more fulfilling."
+        ],
+        "growth": [
+            "Every challenge presents an opportunity for me to grow stronger.",
+            "I embrace change as a pathway to discovering new parts of myself.",
+            "I am constantly evolving and becoming more of who I truly am.",
+            "My journey is uniquely mine, and I trust my path even when it's unclear.",
+            "I celebrate my progress, no matter how small the steps may seem."
+        ]
+    }
+    
+    # Get the affirmations for the requested type, or use general if the type doesn't exist
+    affirmations = themed_affirmations.get(affirmation_type, themed_affirmations["general"])
+    
+    # Return a random affirmation from the selected category
     return random.choice(affirmations)
 
 
