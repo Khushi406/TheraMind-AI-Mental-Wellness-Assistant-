@@ -1,0 +1,32 @@
+{
+  "entries": [
+    {
+      "id": 1,
+      "content": "good",
+      "emotions": [
+        {
+          "label": "joy",
+          "score": 0.9901005625724792
+        },
+        {
+          "label": "sadness",
+          "score": 0.003443492576479912
+        },
+        {
+          "label": "anger",
+          "score": 0.0033905445598065853
+        },
+        {
+          "label": "love",
+          "score": 0.0015314749907702208
+        },
+        {
+          "label": "fear",
+          "score": 0.0007711818907409906
+        }
+      ],
+      "reflection": "You're experiencing joy, which suggests you're connecting with things that bring you fulfillment. Cherish these positive moments and consider how you might create more of them in your life.",
+      "timestamp": "2025-05-18T08:33:44.941169"
+    }
+  ]
+}

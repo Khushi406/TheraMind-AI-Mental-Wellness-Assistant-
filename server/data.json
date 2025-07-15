@@ -1,0 +1,168 @@
+{
+  "entries": [
+    {
+      "id": 1,
+      "content": "hii",
+      "emotions": [
+        {
+          "label": "joy",
+          "score": 0.3763824701309204
+        },
+        {
+          "label": "anger",
+          "score": 0.35576581954956055
+        },
+        {
+          "label": "fear",
+          "score": 0.1986686885356903
+        },
+        {
+          "label": "sadness",
+          "score": 0.05140935629606247
+        },
+        {
+          "label": "surprise",
+          "score": 0.009153136052191257
+        }
+      ],
+      "reflection": "You're experiencing joy, which suggests you're connecting with things that bring you fulfillment. Cherish these positive moments and consider how you might create more of them in your life.",
+      "timestamp": "2025-05-20T21:51:26.409796"
+    },
+    {
+      "id": 2,
+      "content": "Today was a peaceful day. I took some time to sit outside and just breathe. The weather was perfect\u2014sunny but not too hot. I felt a sense of calm that I haven\u2019t felt in a while. I managed to finish my work early and even had time to read a few chapters of a book I love. I\u2019m grateful for these quiet moments that recharge me.\n\n",
+      "emotions": [
+        {
+          "label": "joy",
+          "score": 0.9988810420036316
+        },
+        {
+          "label": "love",
+          "score": 0.0003642235533334315
+        },
+        {
+          "label": "sadness",
+          "score": 0.000329519942170009
+        },
+        {
+          "label": "anger",
+          "score": 0.00017531424236949533
+        },
+        {
+          "label": "fear",
+          "score": 0.00012804276775568724
+        }
+      ],
+      "reflection": "You're experiencing joy, which suggests you're connecting with things that bring you fulfillment. Cherish these positive moments and consider how you might create more of them in your life.",
+      "timestamp": "2025-05-20T21:52:14.374045"
+    },
+    {
+      "id": 3,
+      "content": "I\u2019ve been feeling really overwhelmed lately. There\u2019s so much to do with exams, work, and personal stuff all piling up. My mind keeps racing, and it\u2019s hard to focus. I wish I could slow down or find a way to feel less anxious. I hope tomorrow will be better.\n",
+      "emotions": [
+        {
+          "label": "fear",
+          "score": 0.8304955363273621
+        },
+        {
+          "label": "surprise",
+          "score": 0.1645498126745224
+        },
+        {
+          "label": "sadness",
+          "score": 0.002292436547577381
+        },
+        {
+          "label": "joy",
+          "score": 0.0009159689070656896
+        },
+        {
+          "label": "love",
+          "score": 0.000886030844412744
+        }
+      ],
+      "reflection": "There's fear present in your writing. This emotion helps us identify potential threats, but sometimes it can overestimate risks. Try to distinguish between helpful caution and limiting anxiety.",
+      "timestamp": "2025-05-20T21:52:36.363072"
+    },
+    {
+      "id": 4,
+      "content": "myself kartikay saxena \n",
+      "emotions": [
+        {
+          "label": "neutral",
+          "score": 0.5
+        },
+        {
+          "label": "joy",
+          "score": 0.2
+        },
+        {
+          "label": "sadness",
+          "score": 0.1
+        }
+      ],
+      "reflection": "Your writing has a balanced, neutral tone. This emotional equilibrium can be a good place for clear thinking and decision-making.",
+      "timestamp": "2025-05-22T11:16:30.138727"
+    },
+    {
+      "id": 5,
+      "content": "A persistent ache tightens around my temples, like a vice squeezing my skull. The pressure builds, throbbing rhythmically with each heartbeat, making it hard to focus. Light and sound intensify the discomfort, leaving me fatigued and irritable. I long for relief from this relentless, pulsing pain.\n\n",
+      "emotions": [
+        {
+          "label": "neutral",
+          "score": 0.5
+        },
+        {
+          "label": "joy",
+          "score": 0.2
+        },
+        {
+          "label": "sadness",
+          "score": 0.1
+        }
+      ],
+      "reflection": "Your writing has a balanced, neutral tone. This emotional equilibrium can be a good place for clear thinking and decision-making.",
+      "timestamp": "2025-05-22T11:17:29.100975"
+    },
+    {
+      "id": 6,
+      "content": "I AM FEELONG SAD RIGHT NOW",
+      "emotions": [
+        {
+          "label": "neutral",
+          "score": 0.5
+        },
+        {
+          "label": "joy",
+          "score": 0.2
+        },
+        {
+          "label": "sadness",
+          "score": 0.1
+        }
+      ],
+      "reflection": "Your writing has a balanced, neutral tone. This emotional equilibrium can be a good place for clear thinking and decision-making.",
+      "timestamp": "2025-05-22T17:03:06.821778"
+    },
+    {
+      "id": 7,
+      "content": "Very exited for today",
+      "emotions": [
+        {
+          "label": "neutral",
+          "score": 0.5
+        },
+        {
+          "label": "joy",
+          "score": 0.2
+        },
+        {
+          "label": "sadness",
+          "score": 0.1
+        }
+      ],
+      "reflection": "Your writing has a balanced, neutral tone. This emotional equilibrium can be a good place for clear thinking and decision-making.",
+      "timestamp": "2025-07-15T12:14:59.027150"
+    }
+  ]
+}
