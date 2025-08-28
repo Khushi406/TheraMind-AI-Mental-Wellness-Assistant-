@@ -5,6 +5,13 @@ import json
 from datetime import datetime
 import huggingface_api
 import data_storage
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Print the Hugging Face API Key for debugging (remove in production)
+print("HUGGING_FACE_API_KEY:", os.environ.get("HUGGING_FACE_API_KEY"))
 
 # Initialize Flask app
 app = Flask(__name__)

@@ -163,6 +163,102 @@
       ],
       "reflection": "Your writing has a balanced, neutral tone. This emotional equilibrium can be a good place for clear thinking and decision-making.",
       "timestamp": "2025-07-15T12:14:59.027150"
+    },
+    {
+      "id": 8,
+      "content": "i was felling very low in the day but during i went out with my friend and enjoyed a lot but now i am very tired and my body is aching",
+      "emotions": [
+        {
+          "label": "neutral",
+          "score": 0.5
+        },
+        {
+          "label": "joy",
+          "score": 0.2
+        },
+        {
+          "label": "sadness",
+          "score": 0.1
+        }
+      ],
+      "reflection": "Your writing has a balanced, neutral tone. This emotional equilibrium can be a good place for clear thinking and decision-making.",
+      "timestamp": "2025-08-20T22:58:05.387194"
+    },
+    {
+      "id": 9,
+      "content": "very happy",
+      "emotions": [
+        {
+          "label": "neutral",
+          "score": 0.5
+        },
+        {
+          "label": "joy",
+          "score": 0.2
+        },
+        {
+          "label": "sadness",
+          "score": 0.1
+        }
+      ],
+      "reflection": "Your writing has a balanced, neutral tone. This emotional equilibrium can be a good place for clear thinking and decision-making.",
+      "timestamp": "2025-08-28T16:19:54.460265"
+    },
+    {
+      "id": 10,
+      "content": "sad",
+      "emotions": [
+        {
+          "label": "sadness",
+          "score": 0.993598222732544
+        },
+        {
+          "label": "anger",
+          "score": 0.0029186932370066643
+        },
+        {
+          "label": "joy",
+          "score": 0.0016065420350059867
+        },
+        {
+          "label": "fear",
+          "score": 0.0008002120885066688
+        },
+        {
+          "label": "love",
+          "score": 0.0007759606232866645
+        }
+      ],
+      "reflection": "I notice sadness in your entry. Remember that all emotions, including difficult ones, are part of the human experience. Be gentle with yourself as you process these feelings.",
+      "timestamp": "2025-08-28T16:57:24.930193"
+    },
+    {
+      "id": 11,
+      "content": "Morning:\nI started the day with intention and focus. My energy in the early hours set the tone for what I wanted to accomplish. Even though there were small distractions, I pushed myself to stay disciplined.\n\nAfternoon:\nThe middle of the day was productive but also heavy with mental effort. I worked on refining technical skills and aligning myself with placement preparation goals. At the same time, I found myself reflecting on how far I\u2019ve come compared to even a few months ago.\n\nEvening:\nBy evening, I felt a balance between tiredness and satisfaction. I took time to note my progress and areas that still need sharpening. I also started envisioning the bigger picture\u2014how today\u2019s grind is a brick in the foundation of my future self.\n\nGratitude:\n\nFor the opportunities to learn and grow every single day.\n\nFor the mental toughness I\u2019ve been developing through discipline.\n\nFor the vision of who I want to become, which keeps me pushing forward.\n\nReflection:\nEvery day may feel like a repetition of hard work, but it\u2019s compounding. The effort I put in today isn\u2019t just for now\u2014it\u2019s an investment in the person I want to be.\n\nIntention for Tomorrow:\nStay sharp, avoid unnecessary distractions, and keep momentum. Small wins stacked consistently will bring big results.",
+      "emotions": [
+        {
+          "label": "joy",
+          "score": 0.9542188048362732
+        },
+        {
+          "label": "anger",
+          "score": 0.02682664431631565
+        },
+        {
+          "label": "sadness",
+          "score": 0.014820145443081856
+        },
+        {
+          "label": "love",
+          "score": 0.001650452148169279
+        },
+        {
+          "label": "fear",
+          "score": 0.0016173714539036155
+        }
+      ],
+      "reflection": "You're experiencing joy, which suggests you're connecting with things that bring you fulfillment. Cherish these positive moments and consider how you might create more of them in your life.",
+      "timestamp": "2025-08-28T16:58:27.200132"
     }
   ]
 }

@@ -1,9 +1,11 @@
+from dotenv import load_dotenv
+load_dotenv()
+
 import os
 import requests
 import json
 import random
 
-# Get the Hugging Face API key from environment variables
 API_KEY = os.environ.get("HUGGING_FACE_API_KEY", "")
 if not API_KEY:
     print("Warning: HUGGING_FACE_API_KEY environment variable is not set")
