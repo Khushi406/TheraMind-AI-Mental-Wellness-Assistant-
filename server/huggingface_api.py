@@ -2,11 +2,15 @@ import os
 import requests
 import json
 import random
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '..', '.env'))
 
 # Get the Hugging Face API key from environment variables
-API_KEY = os.environ.get("HUGGING_FACE_API_KEY", "")
+API_KEY = os.environ.get("HUGGINGFACE_API_KEY", "")
 if not API_KEY:
-    print("Warning: HUGGING_FACE_API_KEY environment variable is not set")
+    print("Warning: HUGGINGFACE_API_KEY environment variable is not set")
 
 # Emotion detection model
 EMOTION_MODEL = "bhadresh-savani/distilbert-base-uncased-emotion"

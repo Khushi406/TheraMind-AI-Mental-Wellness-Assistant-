@@ -9,7 +9,9 @@ import { spawn } from "child_process";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Start the Flask backend service
+  // Flask backend service should be started manually
+  // Uncomment and modify the following lines if you want automatic Flask startup:
+  /*
   const flaskProcess = spawn("python3", [path.join(__dirname, "flask_app.py")]);
   
   // Log Flask output (useful for debugging)
@@ -24,6 +26,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   flaskProcess.on('close', (code) => {
     console.log(`Flask process exited with code ${code}`);
   });
+  */
   
   // Create proxy routes to forward requests to Flask backend
   app.all('/api/*', async (req, res) => {
@@ -77,7 +80,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   const httpServer = createServer(app);
 
-  // Cleanup function to kill Flask process when the Express server exits
+  // Cleanup handlers for automatic Flask process (currently disabled)
+  /*
   process.on('exit', () => {
     flaskProcess.kill();
   });
@@ -91,6 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     flaskProcess.kill();
     process.exit();
   });
+  */
 
   return httpServer;
 }

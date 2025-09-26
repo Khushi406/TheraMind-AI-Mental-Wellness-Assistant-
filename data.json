@@ -139,6 +139,45 @@
       ],
       "reflection": "I notice sadness in your entry. Remember that all emotions, including difficult ones, are part of the human experience. Be gentle with yourself as you process these feelings.",
       "timestamp": "2025-05-20T17:21:29.819929"
+    },
+    {
+      "id": 6,
+      "content": "Z0FBQUFBQm8xbXBTYUUxSFU2dmt1eFNJTTI4RHdYSUFlUzc3MXhwUUltMjJEMzBuZlFxMzRtS2VNckZQZmRCbGRfaWNLbXMzVEp6b01DWVJQTlZQejNQeHhKT0tRM2J2dVk1cUZoNEhaQVZIMXBFNHF5UURmaVBTQV9kSzE5Vjh1SER5RkJuMFdEZ2g=",
+      "emotions": [
+        {
+          "label": "joy",
+          "score": 0.9987953901290894
+        },
+        {
+          "label": "love",
+          "score": 0.0003059477894566953
+        },
+        {
+          "label": "surprise",
+          "score": 0.00028665250283665955
+        },
+        {
+          "label": "fear",
+          "score": 0.0002650816459208727
+        },
+        {
+          "label": "sadness",
+          "score": 0.0001801918406272307
+        }
+      ],
+      "reflection": "Z0FBQUFBQm8xbXBUc1hsQ0VGZkN3ZFJ1WXpWQlhjZGlpU3JrUzQteGZrb3VneEN1b3NoVjRFYmR0cUpheVhqMmhfVHliZXhlQ1NnNXNMWG1LU3RJdjRyakJ0RUJHQi1SNXhMTVZ6d0FxV1k5QWxiTWJxRnhobE5mMVRSeDZRTTZrcDJ5ZzZEcUhsZkZ1TFdCN3JCQUxIVVdLTDlfNzJzWHlESU9jVmU2bEs3WVJDSERRVU9iMF8zeTd5X3d1U0FYQzNNSFJrM0V0X1NJdmstQlNnVFlqVV9teFBuTWVuYTZPS1hzWUhPV0NCVXp0VW0tZlZfVzlyOTZMZW1zbXBscHBKSWxUa1d3bGhjTFZ5LWZkcWk3Q1FJUE9WZDJ0czd0d3RhUHhjd0NZZ3JldkE2SDRiOVBKYWN0SE5OZUdCbzJpclRVYXVOY0FBSHo=",
+      "timestamp": "2025-09-26T15:56:26.958576"
     }
-  ]
+  ],
+  "user": {
+    "streak": 1,
+    "last_entry_date": "2025-09-26T15:56:26.958576",
+    "badges": [
+      "entries_5"
+    ],
+    "total_entries": 6,
+    "level": 1,
+    "pin_protected": false,
+    "pin": null
+  }
 }
