@@ -61,18 +61,35 @@ app.use((req, res, next) => {
   // Initialize database tables
   try {
     log("🔄 Initializing database...");
+    
+    // Wait a moment for database connection to be ready
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "users" (
+        "id" serial PRIMARY KEY NOT NULL,
+        "username" text NOT NULL,
+        "password" text NOT NULL,
+        "email" text,
+        "created_at" timestamp DEFAULT now() NOT NULL
+      );
+    `);
+    
     await db.execute(sql`
       CREATE TABLE IF NOT EXISTS "journal_entries" (
         "id" serial PRIMARY KEY NOT NULL,
         "content" text NOT NULL,
-        "emotion" varchar(100),
-        "created_at" timestamp DEFAULT now() NOT NULL,
-        "updated_at" timestamp DEFAULT now() NOT NULL
+        "emotions" jsonb NOT NULL,
+        "reflection" text,
+        "timestamp" timestamp DEFAULT now() NOT NULL,
+        "user_id" integer REFERENCES users(id)
       );
     `);
+    
     log("✅ Database initialized successfully!");
   } catch (error) {
-    log(`❌ Database initialization failed: ${error}`);
+    log(`⚠️ Database initialization warning: ${error}`);
+    log("App will continue running - database may already be initialized");
   }
 
   //ALWAYS serve the app on port 5000

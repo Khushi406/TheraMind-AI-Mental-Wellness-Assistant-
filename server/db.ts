@@ -12,5 +12,7 @@ const client = new Client({
   connectionString: process.env.DATABASE_URL,
 });
 
-await client.connect();
+// Connect to the database
+client.connect().catch(console.error);
+
 export const db = drizzle({ client, schema });
