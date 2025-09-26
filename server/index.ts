@@ -86,6 +86,16 @@ app.use((req, res, next) => {
       );
     `);
     
+    // Add emotions column if it doesn't exist (migration)
+    try {
+      await db.execute(sql`
+        ALTER TABLE "journal_entries" 
+        ADD COLUMN IF NOT EXISTS "emotions" jsonb NOT NULL DEFAULT '[]'::jsonb;
+      `);
+    } catch (err) {
+      log(`Migration note: ${err}`);
+    }
+    
     log("✅ Database initialized successfully!");
   } catch (error) {
     log(`⚠️ Database initialization warning: ${error}`);

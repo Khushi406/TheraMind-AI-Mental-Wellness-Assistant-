@@ -181,7 +181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If a Flask service is configured, proxy to it
       if (FLASK_URL) {
         try {
-          const response = await fetch(`${FLASK_URL}/api/analyze` as any, {
+          const flaskUrl = FLASK_URL.startsWith('http') ? FLASK_URL : `https://${FLASK_URL}`;
+          const response = await fetch(`${flaskUrl}/api/analyze` as any, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(req.body),
@@ -251,7 +252,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If a Flask service is configured, proxy to it
       if (FLASK_URL) {
         try {
-          const response = await fetch(`${FLASK_URL}/api/prompt` as any);
+          const flaskUrl = FLASK_URL.startsWith('http') ? FLASK_URL : `https://${FLASK_URL}`;
+          const response = await fetch(`${flaskUrl}/api/prompt` as any);
           if (response.ok) {
             const data = await response.json();
             return res.status(response.status).json(data);
@@ -323,7 +325,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If a Flask service is configured, proxy to it
       if (FLASK_URL) {
         try {
-          const response = await fetch(`${FLASK_URL}/api/history` as any);
+          const flaskUrl = FLASK_URL.startsWith('http') ? FLASK_URL : `https://${FLASK_URL}`;
+          const response = await fetch(`${flaskUrl}/api/history` as any);
           if (response.ok) {
             const data = await response.json();
             return res.status(response.status).json(data);
