@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
 
 const app = express();
 app.use(express.json());
@@ -54,6 +56,23 @@ app.use((req, res, next) => {
     await setupVite(app, server);
   } else {
     serveStatic(app);
+  }
+
+  // Initialize database tables
+  try {
+    log("🔄 Initializing database...");
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS "journal_entries" (
+        "id" serial PRIMARY KEY NOT NULL,
+        "content" text NOT NULL,
+        "emotion" varchar(100),
+        "created_at" timestamp DEFAULT now() NOT NULL,
+        "updated_at" timestamp DEFAULT now() NOT NULL
+      );
+    `);
+    log("✅ Database initialized successfully!");
+  } catch (error) {
+    log(`❌ Database initialization failed: ${error}`);
   }
 
   //ALWAYS serve the app on port 5000
