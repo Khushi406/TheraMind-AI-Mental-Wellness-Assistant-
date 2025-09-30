@@ -2,6 +2,7 @@ import os
 import requests
 import json
 import random
+import time
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -28,6 +29,10 @@ def analyze_emotion(text):
     Returns:
         list: List of emotions with their scores
     """
+    if not API_KEY:
+        print("Warning: No Hugging Face API key configured, using fallback emotions")
+        return get_fallback_emotions()
+    
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
@@ -40,10 +45,20 @@ def analyze_emotion(text):
     url = f"https://api-inference.huggingface.co/models/{EMOTION_MODEL}"
     
     try:
-        response = requests.post(url, headers=headers, json=payload)
+        print(f"Calling HF API for emotion analysis: {url}")
+        response = requests.post(url, headers=headers, json=payload, timeout=30)
+        
+        print(f"HF API Response Status: {response.status_code}")
+        
+        if response.status_code == 503:
+            print("Model is loading, waiting and retrying...")
+            time.sleep(3)
+            response = requests.post(url, headers=headers, json=payload, timeout=30)
+        
         response.raise_for_status()  # Raise exception for HTTP errors
         
         result = response.json()
+        print(f"HF API Response Data: {result}")
         
         # Process and format the results
         emotions = []
@@ -56,20 +71,40 @@ def analyze_emotion(text):
             elif isinstance(result[0], list):
                 # Format: [[{"label": "joy", "score": 0.9}, ...]]
                 emotions = result[0]
+        elif isinstance(result, dict) and "error" in result:
+            print(f"HF API Error: {result['error']}")
+            return get_fallback_emotions()
+        
+        # Validate emotions data
+        if not emotions or not isinstance(emotions, list):
+            print("Invalid emotions data from HF API, using fallback")
+            return get_fallback_emotions()
         
         # Sort emotions by score in descending order
         emotions.sort(key=lambda x: x.get("score", 0), reverse=True)
         
+        print(f"Successfully processed {len(emotions)} emotions")
         return emotions
-    
+        
+    except requests.exceptions.Timeout:
+        print("HF API request timed out, using fallback emotions")
+        return get_fallback_emotions()
     except requests.exceptions.RequestException as e:
         print(f"Error calling Hugging Face API for emotion analysis: {e}")
-        # Return some default emotions if API fails
-        return [
-            {"label": "neutral", "score": 0.5},
-            {"label": "joy", "score": 0.2},
-            {"label": "sadness", "score": 0.1}
-        ]
+        return get_fallback_emotions()
+    except Exception as e:
+        print(f"Unexpected error in emotion analysis: {e}")
+        return get_fallback_emotions()
+
+
+def get_fallback_emotions():
+    """Return fallback emotions when API fails"""
+    return [
+        {"label": "neutral", "score": 0.4},
+        {"label": "contemplative", "score": 0.3},
+        {"label": "hopeful", "score": 0.2},
+        {"label": "curious", "score": 0.1}
+    ]
 
 
 def generate_prompt(user_emotions=None, user_themes=None):

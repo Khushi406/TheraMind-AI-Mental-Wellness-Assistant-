@@ -67,3 +67,30 @@ export async function getHistory() {
     throw error;
   }
 }
+
+/**
+ * Test emotion detection functionality
+ * @param {string} content - Test content for emotion analysis
+ * @returns {Promise<Object>} - Debug information about emotion detection
+ */
+export async function testEmotionDetection(content) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/test-emotion`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ content }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to test emotion detection');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error testing emotion detection:', error);
+    throw error;
+  }
+}
