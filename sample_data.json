@@ -1,0 +1,135 @@
+{
+  "users": [
+    {
+      "username": "testuser",
+      "password": "password123",
+      "email": "test@example.com"
+    }
+  ],
+  "journalEntries": [
+    {
+      "content": "Today was such a wonderful day! I finally finished my project at work and my team was really impressed. I feel so accomplished and proud of what I've achieved. The sun was shining, and I took a walk in the park during lunch. Everything just felt perfect and I'm grateful for this moment of pure happiness.",
+      "emotions": [
+        {"label": "joy", "score": 0.9},
+        {"label": "pride", "score": 0.8},
+        {"label": "gratitude", "score": 0.85}
+      ],
+      "reflection": "This feeling of accomplishment reminds me that hard work really does pay off. I should celebrate these wins more often."
+    },
+    {
+      "content": "I'm feeling really overwhelmed today. Work has been piling up, and I don't know how I'm going to get everything done. My manager keeps adding more tasks, and I feel like I'm drowning. I couldn't sleep well last night because I was thinking about all the deadlines. I just want to curl up in bed and hide from everything.",
+      "emotions": [
+        {"label": "anxiety", "score": 0.85},
+        {"label": "stress", "score": 0.9},
+        {"label": "overwhelm", "score": 0.8}
+      ],
+      "reflection": "Maybe I need to talk to my manager about workload management. It's okay to ask for help when I need it."
+    },
+    {
+      "content": "Had lunch with my best friend today after months of not seeing each other. We laughed so much and caught up on everything that's been happening in our lives. It felt so good to connect with someone who really understands me. These are the moments that make life meaningful - simple conversations with people who care about you.",
+      "emotions": [
+        {"label": "joy", "score": 0.8},
+        {"label": "love", "score": 0.7},
+        {"label": "connection", "score": 0.9}
+      ],
+      "reflection": "I should make more effort to maintain my friendships. They bring so much joy and meaning to my life."
+    },
+    {
+      "content": "I made a mistake at work today that cost the company some money. I feel terrible about it and keep replaying what happened in my mind. My supervisor was understanding, but I can't shake this feeling of guilt and disappointment in myself. I pride myself on being careful, and this feels like a personal failure.",
+      "emotions": [
+        {"label": "guilt", "score": 0.8},
+        {"label": "disappointment", "score": 0.75},
+        {"label": "shame", "score": 0.7}
+      ],
+      "reflection": "Everyone makes mistakes. This is a learning opportunity, and I'll be more careful next time. My worth isn't defined by one error."
+    },
+    {
+      "content": "Started reading a new book today and I'm already completely absorbed in it. There's something magical about discovering a story that captivates you from the first page. I spent hours reading and completely lost track of time. It's been a while since I felt this excited about something, and it reminds me how much I love getting lost in good stories.",
+      "emotions": [
+        {"label": "excitement", "score": 0.8},
+        {"label": "curiosity", "score": 0.9},
+        {"label": "wonder", "score": 0.75}
+      ],
+      "reflection": "Reading brings me so much joy. I should make more time for books and hobbies that truly engage my mind."
+    },
+    {
+      "content": "My grandmother called me today, and we had a long conversation about her childhood stories. She's getting older, and I can hear it in her voice. While I cherish these moments with her, I can't help but feel sad thinking about the passage of time. Her stories are like precious gifts, and I want to remember every detail.",
+      "emotions": [
+        {"label": "nostalgia", "score": 0.8},
+        {"label": "sadness", "score": 0.6},
+        {"label": "love", "score": 0.9}
+      ],
+      "reflection": "Time with loved ones is precious. I should call my grandmother more often and maybe record some of her stories."
+    },
+    {
+      "content": "Went for a run this morning for the first time in months. My body felt heavy and slow, and I had to stop several times to catch my breath. I used to be so much fitter, and it's frustrating to see how much I've declined. But I did it - I actually got out there and moved my body, which is something to be proud of.",
+      "emotions": [
+        {"label": "frustration", "score": 0.6},
+        {"label": "determination", "score": 0.7},
+        {"label": "pride", "score": 0.5}
+      ],
+      "reflection": "Every journey starts with a single step. I shouldn't compare my current self to my past self, but celebrate the progress I'm making now."
+    },
+    {
+      "content": "Spent the evening cooking a new recipe I found online. The process was so meditative - chopping vegetables, stirring the pot, watching everything come together. The kitchen smelled amazing, and when I finally tasted it, I was so proud of what I had created. Cooking always makes me feel grounded and creative.",
+      "emotions": [
+        {"label": "peace", "score": 0.8},
+        {"label": "creativity", "score": 0.7},
+        {"label": "satisfaction", "score": 0.85}
+      ],
+      "reflection": "Cooking is like meditation for me. I should make time for it more often, especially when I'm feeling stressed."
+    },
+    {
+      "content": "Had a disagreement with my partner today about something silly, but it escalated into a bigger argument. We both said things we didn't mean, and now there's this uncomfortable tension between us. I hate when we fight, even over small things. I know we'll work it out, but right now I just feel distant and frustrated.",
+      "emotions": [
+        {"label": "frustration", "score": 0.7},
+        {"label": "sadness", "score": 0.6},
+        {"label": "regret", "score": 0.8}
+      ],
+      "reflection": "Communication is so important in relationships. Maybe I should apologize first and talk about how we can handle disagreements better in the future."
+    },
+    {
+      "content": "Watched the sunrise from my balcony this morning with a cup of coffee. The sky was painted in the most beautiful colors - pink, orange, and gold. There was something so peaceful about that moment of stillness before the world wakes up. It reminded me to slow down and appreciate the simple, beautiful moments in life.",
+      "emotions": [
+        {"label": "peace", "score": 0.9},
+        {"label": "gratitude", "score": 0.8},
+        {"label": "wonder", "score": 0.85}
+      ],
+      "reflection": "These quiet moments of beauty are everywhere if I just take time to notice them. I want to be more present and mindful in my daily life."
+    }
+  ],
+  "journalPrompts": [
+    {
+      "prompt": "What are three things you're grateful for today, and why do they matter to you?",
+      "affirmation": "I am worthy of love, joy, and all the good things life has to offer."
+    },
+    {
+      "prompt": "Describe a challenge you're currently facing and one small step you could take to address it.",
+      "affirmation": "I have the strength and wisdom to overcome any obstacle in my path."
+    },
+    {
+      "prompt": "What does self-care look like for you right now? How can you prioritize it today?",
+      "affirmation": "Taking care of myself is not selfish - it's necessary and important."
+    },
+    {
+      "prompt": "Think about a recent accomplishment, no matter how small. How did it make you feel?",
+      "affirmation": "I celebrate my progress and acknowledge every step forward on my journey."
+    },
+    {
+      "prompt": "What emotions did you experience today? What might they be trying to tell you?",
+      "affirmation": "All of my emotions are valid and provide valuable information about my needs."
+    },
+    {
+      "prompt": "Describe someone who makes you feel supported and loved. What about them brings you comfort?",
+      "affirmation": "I am surrounded by love and support, and I deserve healthy, caring relationships."
+    },
+    {
+      "prompt": "What activities or experiences bring you the most joy and energy?",
+      "affirmation": "I deserve to experience joy and I make time for activities that bring me happiness."
+    },
+    {
+      "prompt": "How have you grown or changed in the past month? What are you proud of?",
+      "affirmation": "I am constantly growing and evolving into the best version of myself."
+    }
+  ]
+}
