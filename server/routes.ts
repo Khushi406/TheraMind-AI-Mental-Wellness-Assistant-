@@ -14,8 +14,6 @@ const FLASK_URL = process.env.FLASK_URL || "";
 
 async function hfPost(model: string, payload: any) {
   try {
-    console.log(`Calling HF API for model: ${model}`);
-    
     const res = await fetch(`https://api-inference.huggingface.co/models/${model}` as any, {
       method: "POST",
       headers: {
@@ -26,36 +24,16 @@ async function hfPost(model: string, payload: any) {
     } as any);
     
     let json: any = null;
-    let responseText: string = '';
-    
     try {
-      responseText = await res.text();
-      json = JSON.parse(responseText);
-    } catch (parseError) {
-      console.log('Failed to parse HF response as JSON:', responseText);
-      json = { error: 'Invalid JSON response', raw: responseText };
-    }
-    
-    console.log(`HF API Response: Status ${res.status}, OK: ${res.ok}`);
-    
-    if (!res.ok) {
-      console.log('HF API Error Response:', json);
-      
-      // Handle common HF API errors
-      if (json?.error) {
-        if (json.error.includes('loading')) {
-          console.log('Model is loading, waiting and retrying...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          // Retry once
-          return hfPost(model, payload);
-        }
-      }
+      json = await res.json();
+    } catch {
+      // ignore parse errors
     }
     
     return { ok: res.ok, status: res.status, data: json };
   } catch (error) {
     console.error('HF API Request failed:', error);
-    return { ok: false, status: 500, data: { error: error instanceof Error ? error.message : 'Unknown error' } };
+    return { ok: false, status: 500, data: null };
   }
 }
 
@@ -80,18 +58,11 @@ function extractThemesFromContent(content: string): string[] {
 }
 
 function defaultEmotions() {
-  const defaults = [
-    { label: "neutral", score: 0.4 },
+  return [
+    { label: "neutral", score: 0.5 },
     { label: "contemplative", score: 0.3 },
-    { label: "hopeful", score: 0.2 },
-    { label: "curious", score: 0.1 }
+    { label: "hopeful", score: 0.2 }
   ];
-  
-  // Add some randomization to make it feel more natural
-  return defaults.map(emotion => ({
-    ...emotion,
-    score: Math.max(0.05, emotion.score + (Math.random() - 0.5) * 0.1)
-  })).sort((a, b) => b.score - a.score);
 }
 
 function defaultReflection(primary: string) {
@@ -177,39 +148,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.json({ status: 'ok', message: 'Server is running' });
   });
 
-  // Test emotion detection endpoint
-  app.post('/api/test-emotion', async (req, res) => {
-    const { content } = req.body;
-    
-    if (!content) {
-      return res.status(400).json({ message: 'Content is required' });
-    }
-
-    console.log(`Testing emotion detection for: "${content}"`);
-    
-    try {
-      // Test HF API directly
-      const hfResult = await hfPost(EMOTION_MODEL, { inputs: content });
-      
-      const result = {
-        input: content,
-        huggingface_response: hfResult,
-        api_key_configured: !!HF_API_KEY,
-        flask_url_configured: !!FLASK_URL,
-        model_used: EMOTION_MODEL,
-        timestamp: new Date().toISOString()
-      };
-      
-      res.json(result);
-    } catch (error) {
-      console.error('Test emotion detection error:', error);
-      res.status(500).json({ 
-        message: 'Test failed', 
-        error: error instanceof Error ? error.message : 'Unknown error' 
-      });
-    }
-  });
-
   // Journal entries endpoints
   app.get('/api/journal-entries', async (req, res) => {
     try {
@@ -271,13 +209,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Missing content in request' });
       }
 
-      // 1) Emotions via HF with improved error handling
+      // 1) Emotions via HF
       let emotions: Array<{ label: string; score: number }> = [];
       try {
-        console.log(`Analyzing emotions for: "${content.substring(0, 50)}..."`);
         const r = await hfPost(EMOTION_MODEL, { inputs: content });
-        console.log('HF API Response:', { status: r.status, ok: r.ok, data: r.data });
-        
         if (r.ok && r.data) {
           const d = r.data;
           if (Array.isArray(d) && d.length > 0) {
@@ -287,16 +222,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
               emotions = d as any;
             }
           }
-        } else {
-          console.log('HF API failed:', r.status, r.data);
         }
       } catch (error) {
         console.error('Error calling HF emotion API:', error);
       }
       
-      // Validate and fallback
       if (!emotions || emotions.length === 0 || !Array.isArray(emotions)) {
-        console.log('Using default emotions - API failed or returned invalid data');
         emotions = defaultEmotions();
       }
       emotions.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
