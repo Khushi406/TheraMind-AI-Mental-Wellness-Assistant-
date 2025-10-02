@@ -14,7 +14,7 @@ const FLASK_URL = process.env.FLASK_URL || "";
 
 async function hfPost(model: string, payload: any) {
   try {
-    const res = await fetch(`https://api-inference.huggingface.co/models/${model}` as any, {
+     const res = await fetch(`https://api-inference.huggingface.co/models/${model}` as any, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -146,6 +146,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Health check endpoint
   app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'Server is running' });
+  });
+
+  // Root health check
+  app.get('/health', (req, res) => {
+    res.json({ status: 'ok', message: 'TheraMind Server is running', timestamp: new Date().toISOString() });
   });
 
   // Journal entries endpoints
