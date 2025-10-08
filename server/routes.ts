@@ -443,6 +443,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // 🧪 Test Emotion Analysis endpoint
+  app.post('/api/test-emotion-analysis', async (req, res) => {
+    try {
+      const { content } = req.body as { content?: string };
+      
+      if (!content) {
+        return res.status(400).json({ 
+          error: 'Missing content parameter',
+          example: { content: "I am feeling happy today because I learned something new!" }
+        });
+      }
+
+      console.log('🧪 Testing emotion analysis with content:', content);
+      
+      const analysis = await analyzeEmotions(content);
+      
+      return res.json({
+        status: 'success',
+        message: 'Emotion analysis working correctly!',
+        input: content,
+        analysis: analysis,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('❌ Emotion analysis test error:', error);
+      return res.json({
+        status: 'error',
+        message: 'Emotion analysis test failed',
+        error: error?.message || 'Unknown error',
+        hasApiKey: !!process.env.GEMINI_API_KEY,
+        debug: {
+          errorName: error?.name || 'Unknown',
+          errorStack: error?.stack?.split('\n').slice(0, 3) || []
+        }
+      });
+    }
+  });
+
   // �🤖 AI Chatbot endpoint
   app.post('/api/chat', async (req, res) => {
     try {

@@ -55,12 +55,15 @@ export interface ChatResponse {
  * @returns Detailed emotion analysis
  */
 export async function analyzeEmotions(content: string): Promise<EmotionAnalysis> {
+  console.log('🧠 Starting emotion analysis for:', content.substring(0, 50) + '...');
+  console.log('🔑 API Key available:', !!GEMINI_API_KEY);
+  
   if (!GEMINI_API_KEY) {
+    console.error('❌ Gemini API key not configured');
     throw new Error('Gemini API key not configured');
   }
 
-  const prompt = `
-You are an expert mental health AI assistant. Analyze this journal entry for emotions, mood, and psychological patterns. Provide a comprehensive analysis in JSON format.
+  const prompt = `You are an expert mental health AI assistant. Analyze this journal entry for emotions, mood, and psychological patterns. Provide a comprehensive analysis in JSON format.
 
 Journal Entry: "${content}"
 
@@ -94,25 +97,37 @@ Important:
 `;
 
   try {
+    console.log('🚀 Calling Gemini API for emotion analysis...');
     const result = await emotionModel.generateContent(prompt);
     const responseText = result.response.text();
     
+    console.log('📝 Raw Gemini response:', responseText.substring(0, 200) + '...');
+    
     // Clean up the response to ensure it's valid JSON
     const cleanedResponse = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+    
+    console.log('🧹 Cleaned response:', cleanedResponse.substring(0, 200) + '...');
     
     const analysis = JSON.parse(cleanedResponse);
     
     // Validate the response structure
     if (!analysis.primaryEmotion || !analysis.emotions || !Array.isArray(analysis.emotions)) {
+      console.error('❌ Invalid response structure:', analysis);
       throw new Error('Invalid response structure from Gemini');
     }
     
+    console.log('✅ Emotion analysis successful:', analysis.primaryEmotion);
     return analysis;
   } catch (error) {
-    console.error('Gemini emotion analysis error:', error);
+    console.error('❌ Gemini emotion analysis error:', error);
+    console.error('🔍 Error details:', {
+      message: error?.message || 'Unknown error',
+      stack: error?.stack,
+      name: error?.name
+    });
     
     // Fallback analysis
-    return {
+    const fallbackAnalysis = {
       primaryEmotion: 'neutral',
       emotions: [{ emotion: 'neutral', confidence: 0.5, intensity: 'medium' }],
       mood: 'neutral',

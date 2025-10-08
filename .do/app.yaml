@@ -1,0 +1,30 @@
+# DigitalOcean App Platform configuration
+name: theramind-wellness
+services:
+- name: web
+  source_dir: /
+  github:
+    repo: Khushi406/TheraMind-AI-Mental-Wellness-Assistant-
+    branch: main
+    deploy_on_push: true
+  run_command: npm start
+  environment_slug: node-js
+  instance_count: 1
+  instance_size_slug: basic-xxs
+  http_port: 8080
+  routes:
+  - path: /
+  env:
+  - key: NODE_ENV
+    value: production
+  - key: GEMINI_API_KEY
+    value: ${GEMINI_API_KEY}
+  - key: DATABASE_URL
+    value: ${db.DATABASE_URL}
+
+databases:
+- name: db
+  engine: PG
+  version: "14"
+  size: basic
+  num_nodes: 1
