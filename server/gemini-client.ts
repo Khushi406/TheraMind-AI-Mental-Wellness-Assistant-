@@ -4,6 +4,8 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY || "";
 
 if (!GEMINI_API_KEY) {
   console.warn('⚠️ GEMINI_API_KEY not found. Gemini features will be disabled.');
+} else {
+  console.log('✅ GEMINI_API_KEY found, length:', GEMINI_API_KEY.length);
 }
 
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);

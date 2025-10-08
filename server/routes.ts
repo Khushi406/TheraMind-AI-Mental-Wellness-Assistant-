@@ -456,6 +456,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       console.log('🤖 Processing chat message with Gemini...');
+      console.log('🔑 API Key available:', !!process.env.GEMINI_API_KEY);
+      console.log('💬 Message:', message);
       
       const chatResponse = await chatWithTherapist(message, conversationHistory || []);
       
@@ -466,13 +468,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         followUpQuestions: chatResponse.followUpQuestions,
         timestamp: new Date().toISOString()
       });
-    } catch (err) {
-      console.error('Error in chat endpoint:', err);
+    } catch (err: any) {
+      console.error('❌ Error in chat endpoint:', err);
+      console.error('🔍 Error details:', {
+        message: err?.message || 'Unknown error',
+        stack: err?.stack,
+        name: err?.name
+      });
       return res.status(500).json({ 
         message: 'Chat temporarily unavailable',
         response: "I'm here to listen and support you. While my AI features are temporarily unavailable, remember that your feelings matter and seeking help is a sign of strength.",
         emotionalTone: 'supportive',
-        supportType: 'validation'
+        supportType: 'validation',
+        debug: {
+          error: err?.message || 'Unknown error',
+          hasApiKey: !!process.env.GEMINI_API_KEY
+        }
       });
     }
   });
