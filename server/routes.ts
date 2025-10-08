@@ -330,9 +330,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
           insights: emotionAnalysis.insights
         }
       });
-    } catch (err) {
-      console.error('Error analyzing entry:', err);
-      return res.status(500).json({ message: 'Error analyzing entry' });
+    } catch (err: any) {
+      console.error('❌ Critical error in /api/analyze:', err);
+      console.error('🔍 Error details:', {
+        message: err?.message || 'Unknown error',
+        stack: err?.stack?.split('\n').slice(0, 3),
+        name: err?.name,
+        hasApiKey: !!process.env.GEMINI_API_KEY
+      });
+      
+      // Return a safe fallback response instead of failing
+      try {
+        const fallbackEmotions = defaultEmotions();
+        const fallbackReflection = "Thank you for sharing your thoughts. Your feelings are valid and important, and taking time to journal shows strength and self-awareness.";
+        
+        // Try to save the entry even if analysis failed
+        const { content } = req.body as { content?: string };
+        const saved = await storage.saveJournalEntry({ 
+          content: content || '', 
+          emotions: fallbackEmotions, 
+          reflection: fallbackReflection, 
+          user_id: null
+        });
+
+        return res.json({ 
+          id: saved.id, 
+          emotions: fallbackEmotions, 
+          reflection: fallbackReflection,
+          timestamp: saved.timestamp,
+          analysis: {
+            primaryEmotion: 'neutral',
+            mood: 'neutral',
+            triggers: [],
+            themes: ['general'],
+            sentiment: { score: 0, magnitude: 0.5 },
+            suggestions: ['Take time for self-care', 'Continue journaling regularly'],
+            insights: fallbackReflection
+          },
+          warning: 'Analysis temporarily unavailable, but your entry was saved successfully.'
+        });
+      } catch (fallbackError) {
+        console.error('❌ Even fallback failed:', fallbackError);
+        return res.status(500).json({ 
+          message: 'Failed to analyze journal entry. Please try again.',
+          error: 'Analysis service temporarily unavailable',
+          debug: {
+            originalError: err?.message,
+            fallbackError: fallbackError?.message
+          }
+        });
+      }
     }
   });
 
