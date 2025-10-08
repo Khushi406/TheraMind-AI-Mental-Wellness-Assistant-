@@ -409,7 +409,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // 🤖 AI Chatbot endpoint
+  // � Test Gemini API connection
+  app.get('/api/test-gemini', async (_req, res) => {
+    try {
+      const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+      
+      if (!GEMINI_API_KEY) {
+        return res.json({
+          status: 'error',
+          message: 'GEMINI_API_KEY not found in environment variables',
+          envKeys: Object.keys(process.env).filter(key => key.includes('GEMINI') || key.includes('API'))
+        });
+      }
+
+      // Test a simple Gemini API call
+      const testResponse = await chatWithTherapist("Hello, can you hear me?");
+      
+      return res.json({
+        status: 'success',
+        message: 'Gemini API is working correctly!',
+        testResponse: testResponse.response,
+        hasApiKey: !!GEMINI_API_KEY,
+        apiKeyLength: GEMINI_API_KEY.length
+      });
+    } catch (error) {
+      console.error('Gemini test error:', error);
+      return res.json({
+        status: 'error',
+        message: 'Gemini API test failed',
+        error: error.message,
+        hasApiKey: !!process.env.GEMINI_API_KEY
+      });
+    }
+  });
+
+  // �🤖 AI Chatbot endpoint
   app.post('/api/chat', async (req, res) => {
     try {
       const { message, conversationHistory } = req.body as { 
