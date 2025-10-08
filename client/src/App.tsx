@@ -6,9 +6,10 @@ import NotFound from "@/pages/not-found";
 import JournalPage from './pages/JournalPage';
 import DashboardPage from './pages/DashboardPage';
 import InsightsPage from './pages/InsightsPage';
+import AIInsightsPage from './pages/AIInsightsPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
-import TherapistChat from './components/TherapistChat';
+import AITherapistChat from './components/AITherapistChat';
 
 function Router() {
   return (
@@ -19,11 +20,12 @@ function Router() {
           <Route path="/" component={JournalPage}/>
           <Route path="/dashboard" component={DashboardPage}/>
           <Route path="/insights" component={InsightsPage}/>
+          <Route path="/ai-insights" component={AIInsightsPage}/>
           <Route component={NotFound} />
         </Switch>
       </div>
       <Footer />
-      <TherapistChat />
+      <AITherapistChat />
     </div>
   );
 }

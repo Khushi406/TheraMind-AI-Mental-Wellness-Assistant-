@@ -93,3 +93,96 @@ export async function testEmotionDetection(content) {
     throw error;
   }
 }
+
+/**
+ * 🤖 Chat with AI therapist
+ * @param {string} message - User's message
+ * @param {Array} conversationHistory - Previous conversation context
+ * @returns {Promise<Object>} - AI response with emotional analysis
+ */
+export async function chatWithAI(message, conversationHistory = []) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ message, conversationHistory }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Failed to get AI response');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error chatting with AI:', error);
+    // Return supportive fallback response
+    return {
+      response: "I'm here to listen and support you. While my AI features are temporarily unavailable, remember that your feelings matter and seeking help is a sign of strength.",
+      emotionalTone: 'supportive',
+      supportType: 'validation',
+      timestamp: new Date().toISOString()
+    };
+  }
+}
+
+/**
+ * 📊 Get mood trends and predictions
+ * @returns {Promise<Object>} - Mood analysis and predictions
+ */
+export async function getMoodTrends() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/mood-trends`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to get mood trends');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting mood trends:', error);
+    // Return fallback data
+    return {
+      prediction: 'stable',
+      confidence: 0.5,
+      insights: 'Keep journaling to build better insights over time.',
+      recommendations: ['Continue regular journaling', 'Focus on self-care'],
+      trends: {
+        weekly: { improvement: 0, total: 0 },
+        monthly: { improvement: 0, total: 0 }
+      }
+    };
+  }
+}
+
+/**
+ * 💡 Get personalized therapy suggestions
+ * @returns {Promise<Object>} - Personalized suggestions based on patterns
+ */
+export async function getTherapySuggestions() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/therapy-suggestions`);
+    
+    if (!response.ok) {
+      throw new Error('Failed to get therapy suggestions');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting therapy suggestions:', error);
+    // Return fallback suggestions
+    return {
+      suggestions: [
+        'Practice mindfulness meditation for 5-10 minutes daily',
+        'Maintain a consistent sleep schedule',
+        'Engage in physical activity you enjoy',
+        'Connect with supportive friends or family',
+        'Take breaks when feeling overwhelmed'
+      ],
+      context: 'general wellness',
+      personalized: false
+    };
+  }
+}

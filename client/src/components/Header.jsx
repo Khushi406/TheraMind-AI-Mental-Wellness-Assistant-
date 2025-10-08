@@ -7,7 +7,8 @@ export default function Header() {
   const tabs = [
     { name: 'Journal', path: '/' },
     { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Insights', path: '/insights' }
+    { name: 'Insights', path: '/insights' },
+    { name: '🧠 AI Insights', path: '/ai-insights' }
   ];
 
   return (
