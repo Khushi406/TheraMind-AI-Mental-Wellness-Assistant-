@@ -191,7 +191,11 @@ export async function chatWithTherapist(
   message: string, 
   conversationHistory: Array<{role: 'user' | 'assistant', content: string}> = []
 ): Promise<ChatResponse> {
+  console.log('🤖 Chatbot called with:', message);
+  console.log('🔑 API Key available:', !!GEMINI_API_KEY);
+  
   if (!GEMINI_API_KEY) {
+    console.warn('⚠️ GEMINI_API_KEY not configured, using fallback response');
     return {
       response: "I'm here to listen and support you. While my AI features are temporarily unavailable, remember that your feelings matter and seeking help is a sign of strength.",
       emotionalTone: 'supportive',
@@ -199,13 +203,16 @@ export async function chatWithTherapist(
     };
   }
 
-  // Build conversation context
-  const context = conversationHistory.map(msg => 
-    `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
-  ).join('\n');
+  try {
+    console.log('🚀 Attempting Gemini API call...');
+    
+    // Build conversation context (limit to last 6 messages to avoid token limits)
+    const recentHistory = conversationHistory.slice(-6);
+    const context = recentHistory.map(msg => 
+      `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+    ).join('\n');
 
-  const prompt = `
-You are TheraMind, a compassionate AI mental health assistant. You provide emotional support, active listening, and gentle guidance. You are NOT a replacement for professional therapy but offer empathetic support.
+    const prompt = `You are TheraMind, a compassionate AI mental health assistant. You provide emotional support, active listening, and gentle guidance. You are NOT a replacement for professional therapy but offer empathetic support.
 
 Previous conversation:
 ${context}
@@ -219,7 +226,9 @@ Guidelines:
 - Offer gentle insights when appropriate
 - Suggest coping strategies if relevant
 - Know your limitations - refer to professionals when needed
-- Keep responses concise but meaningful
+- Keep responses concise but meaningful (2-3 sentences max)
+- Be conversational and natural
+- Respond directly to what the user said
 
 Respond in JSON format:
 {
@@ -229,30 +238,52 @@ Respond in JSON format:
   "followUpQuestions": ["optional array of gentle follow-up questions"]
 }
 
-Return ONLY the JSON object.
-`;
+Return ONLY the JSON object.`;
 
-  try {
     const result = await chatModel.generateContent(prompt);
     const responseText = result.response.text();
+    
+    console.log('✅ Gemini response received:', responseText.substring(0, 100) + '...');
+    
+    // Clean up the response to ensure it's valid JSON
     const cleanedResponse = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     
     const response = JSON.parse(cleanedResponse);
     
+    console.log('📝 Parsed response:', response.response);
+    
     return {
-      response: response.response || "I'm here to support you through this.",
+      response: response.response || "I hear you and I'm here to support you through this.",
       emotionalTone: response.emotionalTone || 'supportive',
       supportType: response.supportType || 'validation',
       followUpQuestions: response.followUpQuestions
     };
   } catch (error) {
-    console.error('Chatbot error:', error);
+    console.error('❌ Gemini chatbot error:', error);
+    
+    // Provide contextual fallback responses based on user input
+    const lowerMessage = message.toLowerCase();
+    let fallbackResponse = "I hear you, and I want you to know that your feelings are completely valid.";
+    
+    if (lowerMessage.includes('anxious') || lowerMessage.includes('worried')) {
+      fallbackResponse = "It sounds like you're feeling anxious. That's completely understandable, and you're not alone in feeling this way. Taking slow, deep breaths can sometimes help in moments like these.";
+    } else if (lowerMessage.includes('sad') || lowerMessage.includes('down')) {
+      fallbackResponse = "I can hear that you're going through a difficult time. Your feelings are valid, and it's okay to not be okay sometimes. You've taken a positive step by reaching out.";
+    } else if (lowerMessage.includes('good') || lowerMessage.includes('better') || lowerMessage.includes('happy')) {
+      fallbackResponse = "I'm so glad to hear you're doing well! It's wonderful when we can recognize and appreciate the good moments. What's contributing to your positive feelings today?";
+    } else if (lowerMessage.includes('skill') || lowerMessage.includes('learn')) {
+      fallbackResponse = "That's fantastic that you're learning new skills! Personal growth and learning are such powerful ways to boost our confidence and sense of accomplishment. What skill are you working on?";
+    } else if (lowerMessage.includes('hi') || lowerMessage.includes('hello')) {
+      fallbackResponse = "Hello! I'm TheraMind, and I'm here to listen and support you. How are you feeling today? What's on your mind?";
+    }
+    
+    console.log('🔄 Using fallback response:', fallbackResponse);
     
     return {
-      response: "I hear you, and I want you to know that your feelings are completely valid. Sometimes it helps to take things one moment at a time. How are you feeling right now?",
+      response: fallbackResponse,
       emotionalTone: 'empathetic',
       supportType: 'validation',
-      followUpQuestions: ["What's one small thing that might help you feel a bit better today?"]
+      followUpQuestions: ["What's one thing that's been on your mind lately?"]
     };
   }
 }
