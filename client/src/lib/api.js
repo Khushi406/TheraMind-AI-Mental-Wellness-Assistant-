@@ -1,4 +1,6 @@
 // API client for TheraMind
+// Railway deployment - both frontend and backend on same domain
+
 const API_BASE_URL = '/api';
 
 /**
@@ -17,14 +19,13 @@ export async function submitJournalEntry(content) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to submit journal entry');
+      throw new Error(`Backend API failed: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
     console.error('Error submitting journal entry:', error);
-    throw error;
+    throw new Error('Failed to analyze journal entry. Please try again.');
   }
 }
 
@@ -37,14 +38,13 @@ export async function getPrompt() {
     const response = await fetch(`${API_BASE_URL}/prompt`);
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to get prompt');
+      throw new Error(`Backend API failed: ${response.status}`);
     }
     
     return await response.json();
   } catch (error) {
     console.error('Error getting prompt:', error);
-    throw error;
+    throw new Error('Failed to get daily prompt. Please try again.');
   }
 }
 
@@ -57,14 +57,13 @@ export async function getHistory() {
     const response = await fetch(`${API_BASE_URL}/history`);
     
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || 'Failed to get history');
+      throw new Error(`Backend API failed: ${response.status}`);
     }
     
     return await response.json();
   } catch (error) {
     console.error('Error getting history:', error);
-    throw error;
+    throw new Error('Failed to get journal history. Please try again.');
   }
 }
 
