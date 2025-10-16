@@ -102,9 +102,9 @@ app.use((req, res, next) => {
     log("App will continue running - database may already be initialized");
   }
 
-  //Always serve the app on the PORT provided by Railway or fallback to 5000
+  //Always serve the app on the PORT provided by Railway or fallback to 8080
   // this serves both the API and the client.
-  const port = Number(process.env.PORT) || 5000;
+  const port = Number(process.env.PORT) || 8080;
   
   server.listen(port, "0.0.0.0", () => {
     log(`✅ Server running on port ${port}`);
@@ -112,6 +112,14 @@ app.use((req, res, next) => {
     log(`🔗 Listening on: 0.0.0.0:${port}`);
   }).on('error', (err) => {
     log(`❌ Server startup error: ${err}`);
+    log(`🔗 Listening on: http://localhost:${port}`);
+  }).on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      log(`❌ Error: Port ${port} is already in use.`);
+      log(`  Please stop the other process or use a different port.`);
+    } else {
+      log(`❌ Server startup error: ${err}`);
+    }
     process.exit(1);
   });
 } catch (error) {

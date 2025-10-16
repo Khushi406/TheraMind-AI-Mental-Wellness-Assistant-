@@ -167,3 +167,9 @@ This project is licensed under the MIT License.
 **Built with ❤️ by Khushi**
 
 *Empowering mental wellness through technology*
+
+
+
+
+<!-- cd backend python flask_.app
+npm run dev -->
