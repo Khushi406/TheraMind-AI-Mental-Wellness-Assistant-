@@ -65,65 +65,128 @@ export async function analyzeEmotions(content: string): Promise<EmotionAnalysis>
 
   // ... rest of the function remains the same
 
-  const prompt = `You are a HIGHLY SENSITIVE emotion detection AI with expertise in psychology, emotional intelligence, and mental health. Your task is to perform an ULTRA-DETAILED emotional analysis of this journal entry.
+  const prompt = `You are an EXPERT CLINICAL PSYCHOLOGIST AI with advanced training in emotion recognition, microexpressions, linguistic analysis, and deep psychological assessment. Perform a COMPREHENSIVE MULTI-LAYERED emotional analysis.
 
 Journal Entry: "${content}"
 
-CRITICAL INSTRUCTIONS FOR ULTRA-SENSITIVE EMOTION DETECTION:
-1. Detect EVERY emotional nuance, even subtle hints or conflicting feelings
-2. Identify mixed emotions (e.g., happy but anxious, tired but hopeful)
-3. Look for emotional subtext, implications, and underlying feelings
-4. Detect emotional intensity changes within the text
-5. Notice contradiction patterns (saying one thing, feeling another)
-6. Identify emotional masks (pretending to be fine when struggling)
-7. Detect stress markers: uncertainty, confusion, ambivalence, exhaustion
-8. Pick up on words like "but", "though", "however" as emotion shift indicators
-9. Notice time-related emotions (past regrets, future anxiety, present confusion)
-10. Detect physical manifestations of emotion (tired, energetic, numb)
+═══════════════════════════════════════════════════════════
+ADVANCED EMOTION DETECTION PROTOCOL - MAXIMUM SENSITIVITY
+═══════════════════════════════════════════════════════════
 
-EMOTION DETECTION KEYWORDS TO WATCH FOR:
-- Joy: happy, excited, grateful, content, peaceful, satisfied, delighted, cheerful
-- Sadness: sad, down, blue, disappointed, hurt, heartbroken, lonely, empty
-- Anxiety: worried, nervous, stressed, overwhelmed, scared, tense, uncertain, uneasy
-- Anger: frustrated, annoyed, irritated, mad, furious, resentful, bitter
-- Fear: afraid, terrified, panicked, worried, concerned, anxious, insecure
-- Confusion: unclear, mixed, uncertain, puzzled, conflicted, ambivalent, lost
-- Exhaustion: tired, drained, burnt out, weary, depleted, fatigued
-- Hope: hopeful, optimistic, looking forward, anticipating, expecting
-- Love: love, affection, care, warmth, connection, attachment
-- Shame: ashamed, embarrassed, guilty, regretful, sorry
-- Surprise: surprised, shocked, amazed, startled, unexpected
-- Numbness: numb, disconnected, detached, empty, hollow, apathetic
+🔬 LAYER 1: SURFACE EMOTIONS (Explicitly Stated)
+- Direct emotional words: happy, sad, angry, anxious, etc.
+- Obvious emotional declarations
 
-Return ONLY a valid JSON object with this exact structure:
+🔬 LAYER 2: UNDERLYING EMOTIONS (Implicit/Hidden)
+- Emotional subtext and implications
+- What they're NOT saying but feeling
+- Defense mechanisms: denial, rationalization, intellectualization
+- Emotional masks: "I'm fine" (when clearly not)
+
+🔬 LAYER 3: CONFLICTING EMOTIONS (Emotional Ambivalence)
+- Contradictory feelings co-existing (happy BUT anxious)
+- Approach-avoidance conflicts
+- Mixed feelings about situations/people
+- Emotional confusion and uncertainty
+
+🔬 LAYER 4: PHYSICAL-EMOTIONAL MARKERS
+- Somatic symptoms: tired, tense, nauseous, heart racing
+- Energy levels: drained, restless, hyperactive, lethargic
+- Sleep patterns mentioned: insomnia, oversleeping, nightmares
+- Physical pain correlating with emotional state
+
+🔬 LAYER 5: COGNITIVE-EMOTIONAL PATTERNS
+- Rumination indicators: "can't stop thinking", "keeps replaying"
+- Catastrophizing: worst-case scenarios, "what if" spirals
+- Black-and-white thinking: all-or-nothing statements
+- Self-criticism vs self-compassion language
+- Future vs past focus (anxiety vs regret)
+
+🔬 LAYER 6: LINGUISTIC MARKERS
+- Minimizing language: "just", "a bit", "kinda", "sort of", "I guess"
+- Intensifiers: "really", "very", "so", "extremely"
+- Hedging: "maybe", "perhaps", "possibly", "might"
+- Qualifiers: "but", "however", "though", "although"
+- Absolutes: "always", "never", "everyone", "nothing"
+
+🔬 LAYER 7: EMOTIONAL INTENSITY SPECTRUM
+- Rate each emotion's intensity: minimal (0.1-0.3), mild (0.4-0.6), moderate (0.6-0.8), strong (0.8-0.95)
+- Detect intensity fluctuations within the text
+- Identify emotional crescendos and valleys
+
+🔬 LAYER 8: TEMPORAL EMOTIONAL SHIFTS
+- Past emotions: regret, nostalgia, resentment, grief
+- Present emotions: confusion, overwhelm, contentment, panic
+- Future emotions: anxiety, hope, dread, anticipation
+- Emotional time-travel patterns
+
+🔬 LAYER 9: INTERPERSONAL EMOTIONAL DYNAMICS
+- Emotions about relationships: loneliness, connection, betrayal
+- Social emotions: shame, pride, jealousy, empathy
+- Attachment-related feelings: abandonment, security, dependence
+
+🔬 LAYER 10: EXISTENTIAL & MEANING-MAKING
+- Purpose/meaninglessness feelings
+- Identity confusion or clarity
+- Existential anxiety or peace
+- Value conflicts
+
+═══════════════════════════════════════════════════════════
+EMOTION TAXONOMY (100+ Emotions to Detect):
+═══════════════════════════════════════════════════════════
+
+POSITIVE SPECTRUM:
+Joy, Ecstasy, Elation, Delight, Contentment, Satisfaction, Pride, Gratitude, Relief, Hope, Optimism, Excitement, Enthusiasm, Peace, Serenity, Love, Affection, Warmth, Connection, Confidence, Empowerment, Inspiration, Awe, Wonder, Amusement, Playfulness
+
+NEGATIVE SPECTRUM:
+Sadness, Grief, Melancholy, Despair, Depression, Disappointment, Hurt, Heartbreak, Loneliness, Isolation, Anxiety, Worry, Nervousness, Panic, Fear, Terror, Dread, Insecurity, Vulnerability, Anger, Rage, Frustration, Irritation, Resentment, Bitterness, Disgust, Contempt, Shame, Guilt, Embarrassment, Humiliation, Regret, Remorse
+
+COMPLEX/MIXED:
+Ambivalence, Confusion, Bewilderment, Overwhelm, Numbness, Emptiness, Apathy, Indifference, Restlessness, Tension, Unease, Discomfort, Jealousy, Envy, Nostalgia, Longing, Yearning, Homesickness, Boredom, Frustration, Impatience
+
+PHYSICAL-EMOTIONAL:
+Exhaustion, Fatigue, Burnout, Depletion, Tension, Stress, Restlessness, Hyperarousal, Dissociation, Detachment
+
+═══════════════════════════════════════════════════════════
+OUTPUT REQUIREMENTS:
+═══════════════════════════════════════════════════════════
+
+Return ONLY valid JSON with this structure:
 {
-  "primaryEmotion": "the MOST dominant emotion detected",
+  "primaryEmotion": "most dominant emotion (be specific: not just 'sad' but 'melancholic' or 'grief-stricken')",
   "emotions": [
     {
-      "emotion": "specific emotion name",
-      "confidence": 0.XX (use high confidence 0.7-0.95 for clear indicators),
-      "intensity": "low/medium/high"
+      "emotion": "specific emotion name from taxonomy",
+      "confidence": 0.XX (decimal precision to hundredths: 0.87, 0.92, etc.),
+      "intensity": "minimal/mild/moderate/strong",
+      "layer": "surface/underlying/conflicting/physical/cognitive",
+      "evidence": "specific phrase or word that indicates this emotion"
     }
   ],
-  "mood": "positive/negative/neutral/mixed (use mixed for conflicting emotions)",
-  "triggers": ["specific emotional triggers or situations mentioned"],
-  "themes": ["psychological themes like uncertainty, conflict, ambivalence, exhaustion, hope"],
+  "mood": "positive/negative/neutral/mixed/conflicted/unstable",
+  "emotionalComplexity": "simple/moderate/complex/highly-complex (based on number of conflicting emotions)",
+  "triggers": ["specific situations, thoughts, or events causing these emotions"],
+  "themes": ["psychological themes: uncertainty, loss, hope, identity-crisis, burnout, ambivalence, etc."],
+  "copingStyle": "adaptive/maladaptive/avoidant/expressive (how they're handling emotions)",
+  "defenseMechanisms": ["denial, rationalization, intellectualization, etc. if present"],
   "sentiment": {
-    "score": -1 to 1 (negative to positive, use decimals for nuance),
-    "magnitude": 0-1 (emotional intensity level)
+    "score": -1.0 to 1.0 (precise decimal: -0.73, 0.82, etc.),
+    "magnitude": 0.0-1.0 (emotional intensity overall),
+    "stability": "stable/fluctuating/volatile"
   },
-  "insights": "Deep psychological insight about their emotional state, noting contradictions and subtle feelings",
-  "suggestions": ["personalized, specific coping strategies based on detected emotions"]
+  "insights": "Deep psychological insight (2-3 sentences) acknowledging ALL layers of emotion, contradictions, and validating their experience",
+  "suggestions": ["5-7 specific, evidence-based, personalized coping strategies based on detected emotions and patterns"],
+  "clinicalNotes": "Brief observation of any concerning patterns (rumination, catastrophizing, numbness, etc.)"
 }
 
-REQUIREMENTS:
-- Include 3-7 emotions if multiple emotions detected (BE THOROUGH)
-- Use decimal precision for confidence (e.g., 0.82, 0.91)
-- For conflicting emotions (e.g., "happy but stressed"), include BOTH with high confidence
-- Sentiment score should reflect overall emotional tone with precision
-- If text shows uncertainty/confusion, acknowledge it in insights
-- Provide 3-5 specific, actionable suggestions tailored to their emotional state
-`;
+CRITICAL REQUIREMENTS:
+- Detect 5-10 emotions minimum (be THOROUGH)
+- Use maximum granularity: not "sad" but "melancholic", "grief-stricken", "heartbroken"
+- Include evidence field for each emotion showing exact text
+- Acknowledge ALL contradictions and complexities
+- If ANY concerning patterns detected, note them
+- Suggestions must be SPECIFIC and ACTIONABLE, not generic
+- Use decimal precision for ALL numerical scores`;
 
   try {
     console.log('🚀 Calling Gemini API for emotion analysis...');
