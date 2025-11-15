@@ -57,43 +57,72 @@ export interface ChatResponse {
 export async function analyzeEmotions(content: string): Promise<EmotionAnalysis> {
   console.log('🧠 Starting emotion analysis for:', content.substring(0, 50) + '...');
   console.log('🔑 API Key available:', !!GEMINI_API_KEY);
-  
+
   if (!GEMINI_API_KEY) {
     console.error('❌ Gemini API key not configured');
     throw new Error('Gemini API key not configured');
   }
 
-  const prompt = `You are an expert mental health AI assistant. Analyze this journal entry for emotions, mood, and psychological patterns. Provide a comprehensive analysis in JSON format.
+  // ... rest of the function remains the same
+
+  const prompt = `You are a HIGHLY SENSITIVE emotion detection AI with expertise in psychology, emotional intelligence, and mental health. Your task is to perform an ULTRA-DETAILED emotional analysis of this journal entry.
 
 Journal Entry: "${content}"
 
-Please analyze and return ONLY a valid JSON object with this exact structure:
+CRITICAL INSTRUCTIONS FOR ULTRA-SENSITIVE EMOTION DETECTION:
+1. Detect EVERY emotional nuance, even subtle hints or conflicting feelings
+2. Identify mixed emotions (e.g., happy but anxious, tired but hopeful)
+3. Look for emotional subtext, implications, and underlying feelings
+4. Detect emotional intensity changes within the text
+5. Notice contradiction patterns (saying one thing, feeling another)
+6. Identify emotional masks (pretending to be fine when struggling)
+7. Detect stress markers: uncertainty, confusion, ambivalence, exhaustion
+8. Pick up on words like "but", "though", "however" as emotion shift indicators
+9. Notice time-related emotions (past regrets, future anxiety, present confusion)
+10. Detect physical manifestations of emotion (tired, energetic, numb)
+
+EMOTION DETECTION KEYWORDS TO WATCH FOR:
+- Joy: happy, excited, grateful, content, peaceful, satisfied, delighted, cheerful
+- Sadness: sad, down, blue, disappointed, hurt, heartbroken, lonely, empty
+- Anxiety: worried, nervous, stressed, overwhelmed, scared, tense, uncertain, uneasy
+- Anger: frustrated, annoyed, irritated, mad, furious, resentful, bitter
+- Fear: afraid, terrified, panicked, worried, concerned, anxious, insecure
+- Confusion: unclear, mixed, uncertain, puzzled, conflicted, ambivalent, lost
+- Exhaustion: tired, drained, burnt out, weary, depleted, fatigued
+- Hope: hopeful, optimistic, looking forward, anticipating, expecting
+- Love: love, affection, care, warmth, connection, attachment
+- Shame: ashamed, embarrassed, guilty, regretful, sorry
+- Surprise: surprised, shocked, amazed, startled, unexpected
+- Numbness: numb, disconnected, detached, empty, hollow, apathetic
+
+Return ONLY a valid JSON object with this exact structure:
 {
-  "primaryEmotion": "dominant emotion (joy, sadness, anger, fear, surprise, disgust, love, excitement, etc.)",
+  "primaryEmotion": "the MOST dominant emotion detected",
   "emotions": [
     {
-      "emotion": "emotion name",
-      "confidence": 0.95,
-      "intensity": "high"
+      "emotion": "specific emotion name",
+      "confidence": 0.XX (use high confidence 0.7-0.95 for clear indicators),
+      "intensity": "low/medium/high"
     }
   ],
-  "mood": "positive/negative/neutral",
-  "triggers": ["array of potential emotional triggers identified"],
-  "themes": ["array of recurring themes or topics"],
+  "mood": "positive/negative/neutral/mixed (use mixed for conflicting emotions)",
+  "triggers": ["specific emotional triggers or situations mentioned"],
+  "themes": ["psychological themes like uncertainty, conflict, ambivalence, exhaustion, hope"],
   "sentiment": {
-    "score": 0.8,
-    "magnitude": 0.9
+    "score": -1 to 1 (negative to positive, use decimals for nuance),
+    "magnitude": 0-1 (emotional intensity level)
   },
-  "insights": "Brief psychological insight about the emotional state",
-  "suggestions": ["array of helpful coping strategies or positive actions"]
+  "insights": "Deep psychological insight about their emotional state, noting contradictions and subtle feelings",
+  "suggestions": ["personalized, specific coping strategies based on detected emotions"]
 }
 
-Important: 
-- Return ONLY the JSON object, no other text
-- Confidence should be 0-1
-- Include 1-5 emotions maximum
-- Provide 2-4 practical suggestions
-- Keep insights empathetic and supportive
+REQUIREMENTS:
+- Include 3-7 emotions if multiple emotions detected (BE THOROUGH)
+- Use decimal precision for confidence (e.g., 0.82, 0.91)
+- For conflicting emotions (e.g., "happy but stressed"), include BOTH with high confidence
+- Sentiment score should reflect overall emotional tone with precision
+- If text shows uncertainty/confusion, acknowledge it in insights
+- Provide 3-5 specific, actionable suggestions tailored to their emotional state
 `;
 
   try {
@@ -120,23 +149,103 @@ Important:
     return analysis;
   } catch (error) {
     console.error('❌ Gemini emotion analysis error:', error);
-    console.error('🔍 Error details:', {
-      message: error?.message || 'Unknown error',
-      stack: error?.stack,
-      name: error?.name
+    const errorDetails = error instanceof Error ? {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    } : {
+      message: 'Unknown error',
+      stack: undefined,
+      name: 'Unknown'
+    };
+    console.error('🔍 Error details:', errorDetails);
+    
+    // Intelligent fallback analysis based on keyword detection
+    const lowerContent = content.toLowerCase();
+    let primaryEmotion = 'neutral';
+    let mood = 'neutral';
+    let sentimentScore = 0;
+    const emotions: Array<{ emotion: string; confidence: number; intensity: 'low' | 'medium' | 'high' }> = [];
+    const triggers: string[] = [];
+    const themes: string[] = [];
+    
+    // Emotion keyword detection
+    const emotionKeywords = {
+      happy: ['happy', 'joy', 'glad', 'excited', 'great', 'wonderful', 'amazing', 'fantastic'],
+      sad: ['sad', 'down', 'depressed', 'unhappy', 'miserable', 'hurt', 'cry', 'crying'],
+      anxious: ['anxious', 'worried', 'nervous', 'stress', 'overwhelm', 'panic', 'tense'],
+      angry: ['angry', 'mad', 'furious', 'frustrated', 'annoyed', 'irritated'],
+      confused: ['confused', 'unclear', 'uncertain', 'mixed', 'conflicted', 'weird'],
+      tired: ['tired', 'exhausted', 'drained', 'weary', 'burnt out', 'fatigue'],
+      hopeful: ['hope', 'optimistic', 'better', 'improve', 'tomorrow', 'future'],
+      fearful: ['afraid', 'scared', 'terrified', 'fear', 'frightened']
+    };
+    
+    // Detect emotions based on keywords
+    Object.entries(emotionKeywords).forEach(([emotion, keywords]) => {
+      const matches = keywords.filter(keyword => lowerContent.includes(keyword));
+      if (matches.length > 0) {
+        emotions.push({
+          emotion,
+          confidence: Math.min(0.5 + (matches.length * 0.15), 0.85),
+          intensity: matches.length > 2 ? 'high' : matches.length > 1 ? 'medium' : 'low'
+        });
+      }
     });
     
-    // Fallback analysis
-    const fallbackAnalysis = {
-      primaryEmotion: 'neutral',
-      emotions: [{ emotion: 'neutral', confidence: 0.5, intensity: 'medium' }],
-      mood: 'neutral',
-      triggers: [],
-      themes: ['general'],
-      sentiment: { score: 0, magnitude: 0.5 },
-      insights: 'Analysis temporarily unavailable. Your feelings are valid and important.',
-      suggestions: ['Take a moment to breathe deeply', 'Consider talking to someone you trust']
+    // Determine primary emotion and mood
+    if (emotions.length > 0) {
+      emotions.sort((a, b) => b.confidence - a.confidence);
+      primaryEmotion = emotions[0].emotion;
+      
+      const positiveEmotions = ['happy', 'hopeful'];
+      const negativeEmotions = ['sad', 'anxious', 'angry', 'fearful', 'tired'];
+      
+      const hasPositive = emotions.some(e => positiveEmotions.includes(e.emotion));
+      const hasNegative = emotions.some(e => negativeEmotions.includes(e.emotion));
+      
+      if (hasPositive && hasNegative) {
+        mood = 'mixed';
+        sentimentScore = 0;
+      } else if (hasPositive) {
+        mood = 'positive';
+        sentimentScore = 0.6;
+      } else if (hasNegative) {
+        mood = 'negative';
+        sentimentScore = -0.6;
+      }
+    } else {
+      emotions.push({ emotion: 'neutral', confidence: 0.5, intensity: 'medium' });
+    }
+    
+    // Detect common triggers
+    if (lowerContent.includes('test') || lowerContent.includes('exam')) triggers.push('academic stress');
+    if (lowerContent.includes('work') || lowerContent.includes('job')) triggers.push('work-related stress');
+    if (lowerContent.includes('failed') || lowerContent.includes('mistake')) triggers.push('performance concerns');
+    if (lowerContent.includes('but') || lowerContent.includes('however')) themes.push('conflicting feelings');
+    if (lowerContent.includes('unclear') || lowerContent.includes('confused')) themes.push('uncertainty');
+    
+    const fallbackAnalysis: EmotionAnalysis = {
+      primaryEmotion,
+      emotions: emotions.slice(0, 5),
+      mood,
+      triggers: triggers.length > 0 ? triggers : ['general life events'],
+      themes: themes.length > 0 ? themes : ['self-reflection'],
+      sentiment: { 
+        score: sentimentScore, 
+        magnitude: emotions.length > 0 ? emotions[0].confidence : 0.5 
+      },
+      insights: emotions.length > 1 
+        ? `You seem to be experiencing mixed emotions. It's completely normal to feel multiple things at once.`
+        : `Your feelings are valid. It's okay to take time to process your emotions.`,
+      suggestions: [
+        'Take a few deep breaths and ground yourself in the present moment',
+        'Write down your thoughts to help clarify your feelings',
+        'Consider talking to someone you trust about how you\'re feeling',
+        'Be gentle with yourself - all emotions are valid'
+      ]
     };
+    return fallbackAnalysis;
   }
 }
 

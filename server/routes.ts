@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { handleRegister, handleLogin, handleLogout } from "./auth";
 import { storage } from "./storage";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -160,6 +161,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/health', (req, res) => {
     res.json({ status: 'ok', message: 'TheraMind Server is running', timestamp: new Date().toISOString() });
   });
+
+  // Auth endpoints
+  app.post('/api/auth/register', handleRegister);
+  app.post('/api/auth/login', handleLogin);
+  app.post('/api/auth/logout', handleLogout);
+
 
   // Journal entries endpoints
   app.get('/api/journal-entries', async (req, res) => {
@@ -375,8 +382,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: 'Failed to analyze journal entry. Please try again.',
           error: 'Analysis service temporarily unavailable',
           debug: {
-            originalError: err?.message,
-            fallbackError: fallbackError?.message
+            originalError: err instanceof Error ? err.message : 'Unknown error',
+            fallbackError: fallbackError instanceof Error ? fallbackError.message : String(fallbackError)
           }
         });
       }
@@ -481,10 +488,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Gemini test error:', error);
+      const errorDetails = error instanceof Error ? {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      } : {
+        message: 'Unknown error',
+        stack: undefined,
+        name: 'Unknown'
+      };
       return res.json({
         status: 'error',
         message: 'Gemini API test failed',
-        error: error.message,
+        error: errorDetails.message,
         hasApiKey: !!process.env.GEMINI_API_KEY
       });
     }
@@ -560,7 +576,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stack: err?.stack,
         name: err?.name
       });
-      return res.status(500).json({ 
+      const errorDetails = err instanceof Error ? {
+        message: err.message,
+        stack: err.stack,
+        name: err.name
+      } : {
+        message: 'Unknown error',
+        stack: undefined,
+        name: 'Unknown'
+      };
+      return res.status(500).json({
         message: 'Chat temporarily unavailable',
         response: "I'm here to listen and support you. While my AI features are temporarily unavailable, remember that your feelings matter and seeking help is a sign of strength.",
         emotionalTone: 'supportive',
