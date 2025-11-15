@@ -10,6 +10,9 @@ if (!process.env.DATABASE_URL) {
 
 const client = new Client({
   connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? {
+    rejectUnauthorized: false
+  } : undefined
 });
 
 // Connect to the database
