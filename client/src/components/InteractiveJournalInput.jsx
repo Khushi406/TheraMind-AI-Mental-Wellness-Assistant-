@@ -275,24 +275,25 @@ Be warm, personal, and specific to what they wrote. Keep it 2-4 sentences.`;
             />
           </div>
 
-          {/* AI Therapist Conversation */}
-          <div className="space-y-3 p-4 bg-gradient-to-br from-primary/5 to-purple-50 rounded-xl border border-primary/10">
-            <div className="flex items-center justify-between text-sm font-medium text-neutral-700 mb-2">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-4 h-4 text-primary" />
-                <span>AI Therapist Conversation</span>
+          {/* AI Therapist Conversation - Only show when user starts writing */}
+          {journalEntry.length > 0 && (
+            <div className="space-y-3 p-4 bg-gradient-to-br from-primary/5 to-purple-50 rounded-xl border border-primary/10">
+              <div className="flex items-center justify-between text-sm font-medium text-neutral-700 mb-2">
+                <div className="flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-primary" />
+                  <span>AI Therapist Conversation</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsChatMinimized(!isChatMinimized)}
+                  className="h-6 w-6"
+                >
+                  {isChatMinimized ? <Maximize2 className="w-3 h-3" /> : <Minimize2 className="w-3 h-3" />}
+                </Button>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsChatMinimized(!isChatMinimized)}
-                className="h-6 w-6"
-              >
-                {isChatMinimized ? <Maximize2 className="w-3 h-3" /> : <Minimize2 className="w-3 h-3" />}
-              </Button>
-            </div>
-            
-            {!isChatMinimized && (
+              
+              {!isChatMinimized && (
               <>
                 {/* Messages */}
                 <ScrollArea className="h-[300px] pr-4">
@@ -408,7 +409,8 @@ Be warm, personal, and specific to what they wrote. Keep it 2-4 sentences.`;
                 </form>
               </>
             )}
-          </div>
+            </div>
+          )}
 
           {/* Word Count Progress */}
           <div className="space-y-2">
