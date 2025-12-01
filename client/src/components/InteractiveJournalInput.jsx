@@ -78,6 +78,7 @@ Be warm, personal, and specific to what they wrote. Don't just ask questions - g
 
   const handleUserReply = async (e) => {
     e.preventDefault();
+    e.stopPropagation(); // Prevent event bubbling to parent form
     
     if (!userReply.trim()) return;
 
@@ -208,15 +209,17 @@ Be warm, personal, and specific to what they wrote. Don't just ask questions - g
             />
           </div>
 
-          {/* AI Conversation Thread */}
-          {aiMessages.length > 0 && (
-            <div className="space-y-3 p-4 bg-gradient-to-br from-primary/5 to-purple-50 rounded-xl border border-primary/10">
-              <div className="flex items-center gap-2 text-sm font-medium text-neutral-700 mb-2">
-                <MessageCircle className="w-4 h-4 text-primary" />
-                <span>AI Therapist Conversation</span>
-              </div>
-              
-              {aiMessages.map((message, index) => (
+          {/* AI Conversation Thread - Always visible */}
+          <div className="space-y-3 p-4 bg-gradient-to-br from-primary/5 to-purple-50 rounded-xl border border-primary/10">
+            <div className="flex items-center gap-2 text-sm font-medium text-neutral-700 mb-2">
+              <MessageCircle className="w-4 h-4 text-primary" />
+              <span>AI Therapist Conversation</span>
+            </div>
+            
+            {/* Show messages if any exist */}
+            {aiMessages.length > 0 && (
+              <>
+                {aiMessages.map((message, index) => (
                 <div
                   key={index}
                   className={`flex gap-3 ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}
@@ -290,31 +293,49 @@ Be warm, personal, and specific to what they wrote. Don't just ask questions - g
                 </div>
               )}
 
-              {/* Reply to AI */}
-              <form onSubmit={handleUserReply} className="flex gap-2 pt-2">
-                <Input
-                  type="text"
-                  value={userReply}
-                  onChange={(e) => setUserReply(e.target.value)}
-                  placeholder="Reply to the AI therapist..."
-                  className="flex-1 rounded-full text-sm"
-                  disabled={isAiTyping}
-                />
-                <Button
-                  type="submit"
-                  disabled={!userReply.trim() || isAiTyping}
-                  size="sm"
-                  className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90"
-                >
-                  {isAiTyping ? (
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                  ) : (
-                    <Send className="w-4 h-4" />
-                  )}
-                </Button>
-              </form>
-            </div>
-          )}
+            </>
+            )}
+            
+            {/* Show welcome message if no conversation yet */}
+            {aiMessages.length === 0 && !isAiTyping && (
+              <div className="text-center py-6 text-neutral-500 text-sm">
+                <Brain className="w-8 h-8 mx-auto mb-2 text-primary/40" />
+                <p>Start writing in your journal above, or type a message below to chat with me.</p>
+              </div>
+            )}
+
+            {/* Reply form - always visible */}
+            <form onSubmit={handleUserReply} className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
+              <Input
+                type="text"
+                value={userReply}
+                onChange={(e) => setUserReply(e.target.value)}
+                placeholder="Chat with the AI therapist..."
+                className="flex-1 rounded-full text-sm"
+                disabled={isAiTyping}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleUserReply(e);
+                  }
+                }}
+              />
+              <Button
+                type="submit"
+                disabled={!userReply.trim() || isAiTyping}
+                size="sm"
+                className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {isAiTyping ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+              </Button>
+            </form>
+          </div>
 
           {/* Word Count Progress */}
           <div className="space-y-2">
