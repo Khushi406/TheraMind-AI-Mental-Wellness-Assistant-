@@ -10,6 +10,7 @@ import InsightsPage from './pages/InsightsPage';
 import AIInsightsPage from './pages/AIInsightsPage';
 import Header from './components/Header';
 import Footer from './components/Footer';
+import AITherapistChat from './components/AITherapistChat';
 import { isAuthenticated } from './lib/auth';
 
 // Protected Route Component
@@ -52,6 +53,7 @@ function Router() {
         </Switch>
       </div>
       {authenticated && <Footer />}
+      {authenticated && <AITherapistChat />}
     </div>
   );
 }

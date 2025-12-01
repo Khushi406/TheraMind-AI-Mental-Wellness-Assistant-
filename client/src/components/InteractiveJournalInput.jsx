@@ -1,48 +1,81 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { submitJournalEntry } from '../lib/api';
-import { Brain, Sparkles, Heart, TrendingUp, Lightbulb, MessageCircle, Send, Loader2 } from 'lucide-react';
+import { submitJournalEntry, chatWithAI } from '../lib/api';
+import { Brain, Sparkles, Heart, TrendingUp, Lightbulb, MessageCircle, Send, Bot, User, CheckCircle, Minimize2, Maximize2 } from 'lucide-react';
 
-export default function InteractiveJournalInput({ onSuccess }) {
+export default function InteractiveJournalInput({ onSuccess, onContentChange }) {
   const [journalEntry, setJournalEntry] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [aiMessages, setAiMessages] = useState([]);
-  const [isAiTyping, setIsAiTyping] = useState(false);
-  const [userReply, setUserReply] = useState('');
-  const lastAnalyzedContent = useRef('');
+  const [messages, setMessages] = useState([
+    {
+      id: 1,
+      role: 'assistant',
+      content: "Hello! I'm your AI wellness companion. Start writing in your journal above, and I'll provide real-time support and insights.",
+      emotionalTone: 'welcoming',
+      supportType: 'validation',
+      timestamp: new Date().toISOString()
+    }
+  ]);
+  const [inputMessage, setInputMessage] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const [lastAnalyzedLength, setLastAnalyzedLength] = useState(0);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
+  const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
+  const analysisTimerRef = useRef(null);
   const { toast } = useToast();
 
-  // AI responds to journal writing
+  // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    if (journalEntry.trim().length < 50) return;
-    
-    const contentDiff = Math.abs(journalEntry.length - lastAnalyzedContent.current.length);
-    if (contentDiff < 50) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-    const timer = setTimeout(async () => {
-      lastAnalyzedContent.current = journalEntry;
-      await getAIResponse(journalEntry);
+  // Real-time journal analysis
+  useEffect(() => {
+    if (!journalEntry || journalEntry.trim().length < 50) {
+      return;
+    }
+
+    const contentDiff = Math.abs(journalEntry.length - lastAnalyzedLength);
+    if (contentDiff < 50) {
+      return;
+    }
+
+    if (analysisTimerRef.current) {
+      clearTimeout(analysisTimerRef.current);
+    }
+
+    analysisTimerRef.current = setTimeout(async () => {
+      setLastAnalyzedLength(journalEntry.length);
+      await analyzeJournalContent(journalEntry);
     }, 3000);
 
-    return () => clearTimeout(timer);
-  }, [journalEntry]);
+    return () => {
+      if (analysisTimerRef.current) {
+        clearTimeout(analysisTimerRef.current);
+      }
+    };
+  }, [journalEntry, lastAnalyzedLength]);
 
-  const getAIResponse = async (content) => {
-    setIsAiTyping(true);
-    
+  const analyzeJournalContent = async (content) => {
+    setIsTyping(true);
+
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: `The user wrote in their journal: "${content}"
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+      const analysisPrompt = `The user is writing in their journal: "${content}"
 
 As their compassionate AI therapist, provide a thoughtful, empathetic response that:
 1. VALIDATES their emotions and experiences
@@ -51,79 +84,110 @@ As their compassionate AI therapist, provide a thoughtful, empathetic response t
 4. ACKNOWLEDGES the difficulty of what they're going through
 5. Offers gentle encouragement and support
 
-Be warm, personal, and specific to what they wrote. Don't just ask questions - give them real therapeutic validation and insight. Keep it 2-4 sentences.`,
-          conversationHistory: aiMessages.map(m => ({
-            role: m.isUser ? 'user' : 'assistant',
-            content: m.text
-          }))
-        })
-      });
+Be warm, personal, and specific to what they wrote. Keep it 2-4 sentences.`;
 
-      if (!response.ok) throw new Error('Chat failed');
-
-      const data = await response.json();
+      const aiResponse = await chatWithAI(analysisPrompt, conversationHistory);
       
-      setAiMessages(prev => [...prev, {
-        text: data.response,
-        isUser: false,
-        timestamp: new Date(),
-        followUpQuestions: data.followUpQuestions
-      }]);
+      const assistantMessage = {
+        id: Date.now(),
+        role: 'assistant',
+        content: aiResponse.response,
+        emotionalTone: aiResponse.emotionalTone,
+        supportType: aiResponse.supportType,
+        followUpQuestions: aiResponse.followUpQuestions,
+        timestamp: aiResponse.timestamp
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('AI response error:', error);
+      console.error('Journal analysis error:', error);
     } finally {
-      setIsAiTyping(false);
+      setIsTyping(false);
     }
   };
 
-  const handleUserReply = async (e) => {
-    e.preventDefault();
-    e.stopPropagation(); // Prevent event bubbling to parent form
-    
-    if (!userReply.trim()) return;
+  const handleSendMessage = async () => {
+    if (!inputMessage.trim()) return;
 
     const userMessage = {
-      text: userReply,
-      isUser: true,
-      timestamp: new Date()
+      id: Date.now(),
+      role: 'user',
+      content: inputMessage,
+      timestamp: new Date().toISOString()
     };
 
-    setAiMessages(prev => [...prev, userMessage]);
-    setUserReply('');
-    setIsAiTyping(true);
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+    setIsTyping(true);
 
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: userReply,
-          conversationHistory: aiMessages.map(m => ({
-            role: m.isUser ? 'user' : 'assistant',
-            content: m.text
-          }))
-        })
-      });
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
 
-      if (!response.ok) throw new Error('Chat failed');
-
-      const data = await response.json();
+      const aiResponse = await chatWithAI(inputMessage, conversationHistory);
       
-      setAiMessages(prev => [...prev, {
-        text: data.response,
-        isUser: false,
-        timestamp: new Date(),
-        followUpQuestions: data.followUpQuestions
-      }]);
+      const assistantMessage = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: aiResponse.response,
+        emotionalTone: aiResponse.emotionalTone,
+        supportType: aiResponse.supportType,
+        followUpQuestions: aiResponse.followUpQuestions,
+        timestamp: aiResponse.timestamp
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
-      console.error('Reply error:', error);
-      setAiMessages(prev => [...prev, {
-        text: "I'm here for you. Your feelings are important.",
-        isUser: false,
-        timestamp: new Date()
-      }]);
+      console.error('Chat error:', error);
+      
+      const errorMessage = {
+        id: Date.now() + 1,
+        role: 'assistant',
+        content: "I'm here for you. Your feelings are important.",
+        emotionalTone: 'supportive',
+        supportType: 'validation',
+        timestamp: new Date().toISOString()
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
-      setIsAiTyping(false);
+      setIsTyping(false);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const getSupportTypeIcon = (supportType) => {
+    switch (supportType) {
+      case 'validation': return <Heart className="w-3 h-3" />;
+      case 'guidance': return <Lightbulb className="w-3 h-3" />;
+      case 'encouragement': return <CheckCircle className="w-3 h-3" />;
+      default: return <Bot className="w-3 h-3" />;
+    }
+  };
+
+  const getSupportTypeColor = (supportType) => {
+    switch (supportType) {
+      case 'validation': return 'bg-red-100 text-red-800';
+      case 'guidance': return 'bg-yellow-100 text-yellow-800';
+      case 'encouragement': return 'bg-green-100 text-green-800';
+      case 'information': return 'bg-blue-100 text-blue-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const handleContentChange = (e) => {
+    const content = e.target.value;
+    setJournalEntry(content);
+    if (onContentChange) {
+      onContentChange(content);
     }
   };
 
@@ -150,7 +214,17 @@ Be warm, personal, and specific to what they wrote. Don't just ask questions - g
       });
       
       setJournalEntry('');
-      setAiMessages([]);
+      setMessages([
+        {
+          id: 1,
+          role: 'assistant',
+          content: "Hello! I'm your AI wellness companion. Start writing in your journal above, and I'll provide real-time support and insights.",
+          emotionalTone: 'welcoming',
+          supportType: 'validation',
+          timestamp: new Date().toISOString()
+        }
+      ]);
+      setLastAnalyzedLength(0);
       
       if (onSuccess && typeof onSuccess === 'function') {
         onSuccess(result);
@@ -166,14 +240,6 @@ Be warm, personal, and specific to what they wrote. Don't just ask questions - g
     }
   };
 
-  const formatTime = (date) => {
-    return new Date(date).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-  };
-
   const wordCount = journalEntry.trim().split(/\s+/).filter(w => w.length > 0).length;
   const charCount = journalEntry.length;
   const minWords = 10;
@@ -185,10 +251,10 @@ Be warm, personal, and specific to what they wrote. Don't just ask questions - g
         <CardTitle className="text-2xl font-bold text-neutral-800 flex items-center gap-2">
           <Brain className="w-6 h-6 text-primary" />
           Write Your Journal Entry
-          {isAiTyping && (
+          {isTyping && (
             <span className="text-xs text-primary font-normal flex items-center gap-1 ml-auto">
               <Sparkles className="w-3 h-3 animate-pulse" />
-              AI is listening...
+              AI is analyzing...
             </span>
           )}
         </CardTitle>
@@ -203,138 +269,145 @@ Be warm, personal, and specific to what they wrote. Don't just ask questions - g
           <div className="relative">
             <Textarea
               value={journalEntry}
-              onChange={(e) => setJournalEntry(e.target.value)}
-              placeholder="How are you feeling today? What's on your mind? Start writing and I'll respond to support you..."
+              onChange={handleContentChange}
+              placeholder="How are you feeling today? What's on your mind? Start writing and the AI Companion will respond..."
               className="w-full p-4 border-2 border-neutral-200 rounded-xl min-h-[200px] focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all resize-none"
             />
           </div>
 
-          {/* AI Conversation Thread - Always visible */}
+          {/* AI Therapist Conversation */}
           <div className="space-y-3 p-4 bg-gradient-to-br from-primary/5 to-purple-50 rounded-xl border border-primary/10">
-            <div className="flex items-center gap-2 text-sm font-medium text-neutral-700 mb-2">
-              <MessageCircle className="w-4 h-4 text-primary" />
-              <span>AI Therapist Conversation</span>
+            <div className="flex items-center justify-between text-sm font-medium text-neutral-700 mb-2">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4 text-primary" />
+                <span>AI Therapist Conversation</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsChatMinimized(!isChatMinimized)}
+                className="h-6 w-6"
+              >
+                {isChatMinimized ? <Maximize2 className="w-3 h-3" /> : <Minimize2 className="w-3 h-3" />}
+              </Button>
             </div>
             
-            {/* Show messages if any exist */}
-            {aiMessages.length > 0 && (
+            {!isChatMinimized && (
               <>
-                {aiMessages.map((message, index) => (
-                <div
-                  key={index}
-                  className={`flex gap-3 ${message.isUser ? 'flex-row-reverse' : 'flex-row'}`}
-                >
-                  {/* Avatar */}
-                  <Avatar className={`w-8 h-8 flex-shrink-0 ${
-                    message.isUser 
-                      ? 'bg-blue-100 border-2 border-blue-200' 
-                      : 'bg-primary/10 border-2 border-primary/20'
-                  }`}>
-                    <AvatarFallback className={message.isUser ? 'text-blue-600' : 'text-primary'}>
-                      {message.isUser ? (
-                        <span className="text-xs font-semibold">You</span>
-                      ) : (
-                        <Brain className="w-4 h-4" />
-                      )}
-                    </AvatarFallback>
-                  </Avatar>
+                {/* Messages */}
+                <ScrollArea className="h-[300px] pr-4">
+                  <div className="space-y-3">
+                    {messages.map((message) => (
+                      <div
+                        key={message.id}
+                        className={`flex gap-3 ${message.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}
+                      >
+                        {/* Avatar */}
+                        <div
+                          className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                            message.role === 'user'
+                              ? 'bg-blue-500 text-white'
+                              : 'bg-gray-200 text-gray-600'
+                          }`}
+                        >
+                          {message.role === 'user' ? (
+                            <User className="w-4 h-4" />
+                          ) : (
+                            <Bot className="w-4 h-4" />
+                          )}
+                        </div>
 
-                  {/* Message Bubble */}
-                  <div className={`flex flex-col max-w-[85%] ${message.isUser ? 'items-end' : 'items-start'}`}>
-                    <div
-                      className={`rounded-2xl px-4 py-2.5 ${
-                        message.isUser
-                          ? 'bg-primary text-white rounded-tr-none'
-                          : 'bg-white text-neutral-800 rounded-tl-none border border-neutral-200'
-                      }`}
-                    >
-                      <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                        {message.text}
-                      </p>
-                    </div>
-                    
-                    {/* Follow-up questions */}
-                    {message.followUpQuestions && message.followUpQuestions.length > 0 && (
-                      <div className="mt-2 space-y-1">
-                        {message.followUpQuestions.map((question, qIdx) => (
-                          <button
-                            key={qIdx}
-                            onClick={() => setUserReply(question)}
-                            className="text-xs text-primary hover:text-primary/80 hover:underline text-left"
+                        <div className={`flex flex-col max-w-[85%] ${message.role === 'user' ? 'items-end' : 'items-start'}`}>
+                          <div
+                            className={`rounded-lg p-3 ${
+                              message.role === 'user'
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-white text-gray-800 border'
+                            }`}
                           >
-                            💭 {question}
-                          </button>
-                        ))}
+                            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                          </div>
+                          
+                          {/* AI message metadata */}
+                          {message.role === 'assistant' && (
+                            <div className="flex items-center space-x-2 mt-2">
+                              {message.supportType && (
+                                <Badge variant="outline" className={`text-xs ${getSupportTypeColor(message.supportType)}`}>
+                                  {getSupportTypeIcon(message.supportType)}
+                                  <span className="ml-1 capitalize">{message.supportType}</span>
+                                </Badge>
+                              )}
+                              {message.emotionalTone && (
+                                <Badge variant="outline" className="text-xs">
+                                  {message.emotionalTone}
+                                </Badge>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Follow-up questions */}
+                          {message.followUpQuestions && message.followUpQuestions.length > 0 && (
+                            <div className="mt-2 space-y-1">
+                              {message.followUpQuestions.map((question, index) => (
+                                <Button
+                                  key={index}
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs h-7 bg-white hover:bg-gray-50"
+                                  onClick={() => setInputMessage(question)}
+                                >
+                                  {question}
+                                </Button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {/* Typing indicator */}
+                    {isTyping && (
+                      <div className="flex gap-3">
+                        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+                          <Bot className="w-4 h-4 text-gray-600" />
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border">
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          </div>
+                        </div>
                       </div>
                     )}
-
-                    <span className="text-xs text-neutral-500 mt-1 px-1">
-                      {formatTime(message.timestamp)}
-                    </span>
+                    
+                    <div ref={messagesEndRef} />
                   </div>
-                </div>
-              ))}
+                </ScrollArea>
 
-              {/* AI Typing Indicator */}
-              {isAiTyping && (
-                <div className="flex gap-3">
-                  <Avatar className="w-8 h-8 bg-primary/10 border-2 border-primary/20">
-                    <AvatarFallback className="text-primary">
-                      <Brain className="w-4 h-4" />
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="bg-white rounded-2xl rounded-tl-none px-4 py-3 border border-neutral-200">
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                      <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                      <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-            </>
+                {/* Chat Input */}
+                <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className="flex gap-2 pt-2">
+                  <Input
+                    ref={inputRef}
+                    value={inputMessage}
+                    onChange={(e) => setInputMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder="Reply to the AI therapist..."
+                    className="flex-1 rounded-full text-sm"
+                    disabled={isTyping}
+                  />
+                  <Button 
+                    type="submit"
+                    onClick={handleSendMessage} 
+                    disabled={!inputMessage.trim() || isTyping}
+                    size="sm"
+                    className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                </form>
+              </>
             )}
-            
-            {/* Show welcome message if no conversation yet */}
-            {aiMessages.length === 0 && !isAiTyping && (
-              <div className="text-center py-6 text-neutral-500 text-sm">
-                <Brain className="w-8 h-8 mx-auto mb-2 text-primary/40" />
-                <p>Start writing in your journal above, or type a message below to chat with me.</p>
-              </div>
-            )}
-
-            {/* Reply form - always visible */}
-            <form onSubmit={handleUserReply} className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
-              <Input
-                type="text"
-                value={userReply}
-                onChange={(e) => setUserReply(e.target.value)}
-                placeholder="Chat with the AI therapist..."
-                className="flex-1 rounded-full text-sm"
-                disabled={isAiTyping}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleUserReply(e);
-                  }
-                }}
-              />
-              <Button
-                type="submit"
-                disabled={!userReply.trim() || isAiTyping}
-                size="sm"
-                className="rounded-full w-9 h-9 p-0 bg-primary hover:bg-primary/90"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {isAiTyping ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
-              </Button>
-            </form>
           </div>
 
           {/* Word Count Progress */}
@@ -376,16 +449,16 @@ Be warm, personal, and specific to what they wrote. Don't just ask questions - g
         </form>
 
         {/* Helpful Tips */}
-        {journalEntry.length === 0 && aiMessages.length === 0 && (
+        {journalEntry.length === 0 && messages.length === 1 && (
           <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
             <div className="flex items-start gap-3">
               <Lightbulb className="w-5 h-5 text-blue-600 mt-0.5" />
               <div className="space-y-2">
-                <p className="text-sm font-medium text-blue-900">Journaling with AI Support:</p>
+                <p className="text-sm font-medium text-blue-900">How it works:</p>
                 <ul className="text-sm text-blue-800 space-y-1">
-                  <li>• Start writing your thoughts and feelings</li>
-                  <li>• After 50+ characters, I'll respond as your therapist</li>
-                  <li>• You can chat with me directly below your writing</li>
+                  <li>• Start writing your thoughts and feelings above</li>
+                  <li>• After ~50 characters, the AI will analyze and respond below</li>
+                  <li>• Chat with the AI for deeper support and insights</li>
                   <li>• Everything is private and confidential</li>
                 </ul>
               </div>

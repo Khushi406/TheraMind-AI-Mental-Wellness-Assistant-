@@ -19,14 +19,14 @@ import {
   Maximize2
 } from 'lucide-react';
 
-const AITherapistChat = () => {
-  const [isOpen, setIsOpen] = useState(false);
+const AITherapistChat = ({ isEmbedded = false, journalContent = '' }) => {
+  const [isOpen, setIsOpen] = useState(isEmbedded ? true : false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
       role: 'assistant',
-      content: "Hello! I'm your AI wellness companion. I'm here to listen, support, and help you explore your feelings. How are you doing today?",
+      content: "Hello! I'm your AI wellness companion. I'm here to listen, support, and help you explore your feelings. Start writing in your journal, and I'll provide real-time support and insights.",
       emotionalTone: 'welcoming',
       supportType: 'validation',
       timestamp: new Date().toISOString()
@@ -34,8 +34,10 @@ const AITherapistChat = () => {
   ]);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [lastAnalyzedLength, setLastAnalyzedLength] = useState(0);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const analysisTimerRef = useRef(null);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -48,6 +50,75 @@ const AITherapistChat = () => {
       inputRef.current.focus();
     }
   }, [isOpen, isMinimized]);
+
+  // Real-time journal analysis
+  useEffect(() => {
+    if (!journalContent || journalContent.trim().length < 50) {
+      return;
+    }
+
+    const contentDiff = Math.abs(journalContent.length - lastAnalyzedLength);
+    if (contentDiff < 50) {
+      return;
+    }
+
+    // Clear existing timer
+    if (analysisTimerRef.current) {
+      clearTimeout(analysisTimerRef.current);
+    }
+
+    // Set new timer for analysis
+    analysisTimerRef.current = setTimeout(async () => {
+      setLastAnalyzedLength(journalContent.length);
+      await analyzeJournalContent(journalContent);
+    }, 3000);
+
+    return () => {
+      if (analysisTimerRef.current) {
+        clearTimeout(analysisTimerRef.current);
+      }
+    };
+  }, [journalContent, lastAnalyzedLength]);
+
+  const analyzeJournalContent = async (content) => {
+    setIsTyping(true);
+
+    try {
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+      const analysisPrompt = `The user is writing in their journal: "${content}"
+
+As their compassionate AI therapist, provide a thoughtful, empathetic response that:
+1. VALIDATES their emotions and experiences
+2. REFLECTS back what you heard them say (shows you're listening)
+3. HIGHLIGHTS the positive patterns or strengths you notice
+4. ACKNOWLEDGES the difficulty of what they're going through
+5. Offers gentle encouragement and support
+
+Be warm, personal, and specific to what they wrote. Keep it 2-4 sentences.`;
+
+      const aiResponse = await chatWithAI(analysisPrompt, conversationHistory);
+      
+      const assistantMessage = {
+        id: Date.now(),
+        role: 'assistant',
+        content: aiResponse.response,
+        emotionalTone: aiResponse.emotionalTone,
+        supportType: aiResponse.supportType,
+        followUpQuestions: aiResponse.followUpQuestions,
+        timestamp: aiResponse.timestamp
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Journal analysis error:', error);
+    } finally {
+      setIsTyping(false);
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim()) return;
@@ -128,7 +199,8 @@ const AITherapistChat = () => {
     }
   };
 
-  if (!isOpen) {
+  // If embedded, don't show the floating button
+  if (!isOpen && !isEmbedded) {
     return (
       <Button
         onClick={() => setIsOpen(true)}
@@ -140,9 +212,18 @@ const AITherapistChat = () => {
     );
   }
 
+  // If embedded mode and not open, return null
+  if (!isOpen && isEmbedded) {
+    return null;
+  }
+
   return (
-    <Card className={`fixed bottom-6 right-6 w-96 bg-white shadow-xl border-0 z-50 transition-all duration-300 ${
-      isMinimized ? 'h-16' : 'h-[600px]'
+    <Card className={`${
+      isEmbedded 
+        ? 'w-full bg-white shadow-lg border' 
+        : 'fixed bottom-6 right-6 w-96 bg-white shadow-xl border-0 z-50'
+    } transition-all duration-300 ${
+      isMinimized ? 'h-16' : isEmbedded ? 'h-[600px]' : 'h-[600px]'
     }`}>
       {/* Header */}
       <CardHeader className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-4 rounded-t-lg">
@@ -160,14 +241,16 @@ const AITherapistChat = () => {
             >
               {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsOpen(false)}
-              className="h-8 w-8 text-white hover:bg-white/20"
-            >
-              <X className="w-4 h-4" />
-            </Button>
+            {!isEmbedded && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(false)}
+                className="h-8 w-8 text-white hover:bg-white/20"
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -175,7 +258,7 @@ const AITherapistChat = () => {
       {!isMinimized && (
         <CardContent className="p-0 h-full flex flex-col">
           {/* Messages */}
-          <ScrollArea className="flex-1 p-4 max-h-[450px]">
+          <ScrollArea className={`flex-1 p-4 ${isEmbedded ? 'max-h-[450px]' : 'max-h-[450px]'}`}>
             <div className="space-y-4">
               {messages.map((message) => (
                 <div

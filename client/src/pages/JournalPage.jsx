@@ -4,11 +4,13 @@ import InteractiveJournalInput from '../components/InteractiveJournalInput';
 import PromptDisplay from '../components/PromptDisplay';
 import EmotionAnalysis from '../components/EmotionAnalysis';
 import RecentEntries from '../components/RecentEntries';
+import AITherapistChat from '../components/AITherapistChat';
 import { getPrompt, getHistory } from '../lib/api';
 
 export default function JournalPage() {
   const [analysis, setAnalysis] = useState(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [journalContent, setJournalContent] = useState('');
 
   // Get daily prompt and affirmation
   const { data: promptData, isLoading: promptLoading } = useQuery({
@@ -53,13 +55,20 @@ export default function JournalPage() {
         loading={promptLoading} 
       />
       
-      <InteractiveJournalInput onSuccess={handleJournalSuccess} />
+      <InteractiveJournalInput 
+        onSuccess={handleJournalSuccess}
+        onContentChange={setJournalContent}
+      />
       
       {showAnalysis && analysis && (
-        <EmotionAnalysis analysis={analysis} />
+        <div className="mt-6">
+          <EmotionAnalysis analysis={analysis} />
+        </div>
       )}
       
-      <RecentEntries entries={historyData?.entries || []} loading={historyLoading} />
+      <div className="mt-6">
+        <RecentEntries entries={historyData?.entries || []} loading={historyLoading} />
+      </div>
     </main>
   );
 }
