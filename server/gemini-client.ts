@@ -8,10 +8,11 @@ const GROQ_API_KEY = process.env.GROQ_API_KEY || "";
 if (!GEMINI_API_KEY && !GEMINI_API_KEY_BACKUP && !HF_API_KEY && !GROQ_API_KEY) {
   console.warn('⚠️ No AI API keys found. AI features will use fallback responses.');
 } else {
-  if (GROQ_API_KEY) console.log('✅ GROQ_API_KEY found, length:', GROQ_API_KEY.length);
-  if (HF_API_KEY) console.log('✅ HUGGINGFACE_API_KEY found, length:', HF_API_KEY.length);
-  if (GEMINI_API_KEY) console.log('✅ GEMINI_API_KEY found, length:', GEMINI_API_KEY.length);
-  if (GEMINI_API_KEY_BACKUP) console.log('✅ GEMINI_API_KEY_BACKUP found, length:', GEMINI_API_KEY_BACKUP.length);
+  const configuredKeys = [];
+  if (GROQ_API_KEY) configuredKeys.push('GROQ');
+  if (GEMINI_API_KEY) configuredKeys.push('GEMINI');
+  if (GEMINI_API_KEY_BACKUP) configuredKeys.push('GEMINI_BACKUP');
+  console.log(`✅ AI API keys configured: ${configuredKeys.join(', ')}`);
 }
 
 // Track which API key is currently active
@@ -106,8 +107,6 @@ Return this exact JSON structure:
 }`;
 
   try {
-    console.log('🚀 [Groq Emotion] Analyzing with Groq...');
-    
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -133,7 +132,6 @@ Return this exact JSON structure:
 
     const data = await response.json();
     const generatedText = data.choices[0]?.message?.content || '';
-    console.log('📦 [Groq Emotion] Response:', generatedText.substring(0, 200));
     
     // Extract JSON from response
     const jsonMatch = generatedText.match(/\{[\s\S]*\}/);
@@ -142,7 +140,6 @@ Return this exact JSON structure:
     }
 
     const analysis = JSON.parse(jsonMatch[0]);
-    console.log('✅ [Groq Emotion] Analysis complete:', analysis.primaryEmotion);
     return analysis;
   } catch (error) {
     console.error('❌ [Groq Emotion] Failed:', error);
@@ -151,20 +148,16 @@ Return this exact JSON structure:
 }
 
 export async function analyzeEmotions(content: string): Promise<EmotionAnalysis> {
-  console.log('🧠 Starting emotion analysis for:', content.substring(0, 50) + '...');
-  
   // Try Groq first (fast and reliable)
   if (GROQ_API_KEY) {
     try {
-      console.log('🚀 Using Groq for emotion analysis...');
       return await analyzeEmotionsWithGroq(content);
     } catch (groqError) {
-      console.error('❌ Groq emotion analysis failed, falling back to Gemini:', groqError);
+      console.error('Groq failed, falling back to Gemini:', groqError.message);
     }
   }
   
   // Fallback to Gemini
-  console.log('🔑 API Key available:', !!getActiveApiKey());
 
   if (!getActiveApiKey()) {
     console.error('❌ Gemini API key not configured');
@@ -517,9 +510,6 @@ async function callGroqChat(message: string, conversationHistory: Array<{role: '
   ];
 
   try {
-    console.log('🚀 [Groq] Calling Groq API...');
-    console.log('🚀 [Groq] Messages count:', messages.length);
-    
     const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -535,8 +525,6 @@ async function callGroqChat(message: string, conversationHistory: Array<{role: '
       })
     });
 
-    console.log('🔍 [Groq] Response status:', response.status, response.statusText);
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error('❌ [Groq] API error:', errorText);
@@ -544,11 +532,9 @@ async function callGroqChat(message: string, conversationHistory: Array<{role: '
     }
 
     const data = await response.json();
-    console.log('📦 [Groq] Response received');
     
     if (data.choices && data.choices[0]?.message?.content) {
       const reply = data.choices[0].message.content.trim();
-      console.log('✅ [Groq] Reply length:', reply.length);
       return reply;
     }
     
@@ -570,15 +556,10 @@ export async function chatWithTherapist(
   message: string, 
   conversationHistory: Array<{role: 'user' | 'assistant', content: string}> = []
 ): Promise<ChatResponse> {
-  console.log('🤖 Chatbot called with:', message.substring(0, 100));
-  
   // Try Groq first (fast, reliable, free)
   if (GROQ_API_KEY) {
     try {
-      console.log('🚀 Trying Groq API...');
       const groqResponse = await callGroqChat(message, conversationHistory);
-      
-      console.log('✅ Groq response received');
       return {
         response: groqResponse,
         emotionalTone: 'empathetic',
@@ -591,9 +572,6 @@ export async function chatWithTherapist(
   }
   
   // Fallback response if Groq fails or isn't configured
-  console.warn('⚠️ Using fallback response (Groq unavailable)');
-  
-  // Contextual fallback based on message content
   const lowerMsg = message.toLowerCase();
   let fallbackResponse = "I'm here to listen and support you. Your feelings are valid, and it takes courage to share them.";
   
