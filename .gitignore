@@ -62,3 +62,7 @@ tmp/
 test_*.py
 test_*.js
 find_*.js
+
+# extra filer
+INTERVIEW_PREP.md
+INTERVIEW_ROADMAP.md
